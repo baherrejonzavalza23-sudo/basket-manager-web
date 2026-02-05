@@ -10,89 +10,108 @@
 
     <div id="main-menu" class="overlay-full">
         <div class="menu-content">
-            <h1>Basketball Manager 24</h1>
+            <h1>Basketball Manager 2024</h1>
             <div class="menu-grid">
                 <div class="menu-col">
                     <h3>New Career</h3>
                     <label>Select Your Team:</label>
-                    <select id="team-select-dropdown"></select>
-                    <div id="selected-team-info">Rating: -- | Cap: --</div>
+                    <select id="team-select-dropdown" class="menu-select">
+                        </select>
+                    <div id="selected-team-details" class="info-text">Select a team...</div>
                     <button class="big-btn" onclick="startNewGame()">Start Career</button>
                 </div>
                 <div class="menu-col">
                     <h3>Load Career</h3>
-                    <div class="save-slot" onclick="loadSave(1)">Slot 1 <span id="slot-1-info">Empty</span></div>
-                    <div class="save-slot" onclick="loadSave(2)">Slot 2 <span id="slot-2-info">Empty</span></div>
-                    <div class="save-slot" onclick="loadSave(3)">Slot 3 <span id="slot-3-info">Empty</span></div>
+                    <div class="save-slot" onclick="loadSave(1)">
+                        <span class="slot-title">Slot 1</span>
+                        <span id="slot-1-info" class="slot-info">Empty</span>
+                    </div>
+                    <div class="save-slot" onclick="loadSave(2)">
+                        <span class="slot-title">Slot 2</span>
+                        <span id="slot-2-info" class="slot-info">Empty</span>
+                    </div>
+                    <div class="save-slot" onclick="loadSave(3)">
+                        <span class="slot-title">Slot 3</span>
+                        <span id="slot-3-info" class="slot-info">Empty</span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <header>
-        <div class="header-top">
-            <h1>Basketball Manager</h1>
-            <div class="header-controls">
-                <button class="small-btn" onclick="saveGame()">Save Game</button>
-                <button class="small-btn" onclick="showMainMenu()">Exit</button>
-            </div>
-        </div>
-        <div id="status-bar">
-            <span id="date-display">Week 1</span> | 
-            <span id="team-record">0-0</span> | 
-            <span id="fatigue-warn" style="display:none; color:red;">⚠ High Fatigue</span>
-        </div>
-    </header>
-
-    <nav>
-        <button class="nav-btn active" onclick="navigate('dashboard')">League</button>
-        <button class="nav-btn" onclick="navigate('roster')">Roster</button>
-        <button class="nav-btn" onclick="navigate('rotation')">Rotation</button>
-        <button class="nav-btn" onclick="navigate('standings')">Standings</button>
-    </nav>
-
-    <main>
-        <div id="dashboard" class="page active-page">
-            <div class="sim-hub">
-                <h2>Simulation Control</h2>
-                <div class="next-game-card">
-                    <h3>Next Opponent</h3>
-                    <h2 id="next-opponent-name">--</h2>
-                    <div id="next-game-date">Day 1</div>
+    <div id="game-container" style="display:none;">
+        <header>
+            <div class="header-top">
+                <h1>Basketball Manager</h1>
+                <div class="header-controls">
+                    <button class="small-btn" onclick="saveGame()">Save</button>
+                    <button class="small-btn" onclick="exitToMenu()">Exit</button>
                 </div>
+            </div>
+            <div id="status-bar">
+                <span id="season-display">2024 Season</span> | 
+                <span id="date-display">Day 1</span> | 
+                <span id="team-record">0-0</span>
+            </div>
+        </header>
+
+        <nav>
+            <button class="nav-btn active" onclick="navigate('dashboard')">Dashboard</button>
+            <button class="nav-btn" onclick="navigate('roster')">Roster</button>
+            <button class="nav-btn" onclick="navigate('rotation')">Rotation</button>
+            <button class="nav-btn" onclick="navigate('standings')">Standings</button>
+        </nav>
+
+        <main>
+            <div id="dashboard" class="page active-page">
                 
-                <div class="sim-buttons-grid">
-                    <button class="sim-btn" onclick="simDay()">Play Next Day</button>
-                    <button class="sim-btn" onclick="simWeek()">Sim Week</button>
-                    <button class="sim-btn" onclick="simMonth()">Sim Month</button>
+                <div id="regular-season-hub" class="sim-hub">
+                    <h2>Simulation Control</h2>
+                    <div class="next-game-card">
+                        <h3>Next Opponent</h3>
+                        <h2 id="next-opponent-name">--</h2>
+                    </div>
+                    <div class="sim-buttons-grid">
+                        <button class="sim-btn" onclick="simDay()">Play Next Day</button>
+                        <button class="sim-btn" onclick="simWeek()">Sim Week</button>
+                        <button class="sim-btn" onclick="simToPlayoffs()">Sim to Playoffs</button>
+                    </div>
                 </div>
+
+                <div id="playoff-hub" class="sim-hub" style="display:none; border-color: gold;">
+                    <h2 style="color:gold;">🏆 PLAYOFF MODE 🏆</h2>
+                    <div id="playoff-status">Round 1</div>
+                    <div id="playoff-bracket" class="bracket-view">
+                        </div>
+                    <button id="sim-round-btn" class="big-btn" onclick="simPlayoffRound()">Simulate Round</button>
+                </div>
+
+                <h3>League News</h3>
+                <div id="news-feed" class="scroll-list"></div>
             </div>
-            <h3>League News</h3>
-            <div id="news-feed" class="scroll-list"></div>
-        </div>
 
-        <div id="roster" class="page">
-            <h2>Active Roster</h2>
-            <div id="roster-list" class="scroll-list"></div>
-        </div>
-
-        <div id="rotation" class="page">
-            <div class="header-row">
-                <h2>Rotation Strategy</h2>
-                <span id="total-minutes">240 / 240 Mins</span>
+            <div id="roster" class="page">
+                <h2>Active Roster</h2>
+                <div id="roster-list" class="scroll-list"></div>
             </div>
-            <p class="hint-text">Allocate minutes. Players with high minutes gain fatigue faster.</p>
-            <div id="rotation-list" class="scroll-list"></div>
-        </div>
 
-        <div id="standings" class="page">
-            <h2>Standings</h2>
-            <table id="standings-table">
-                <thead><tr><th>Rank</th><th>Team</th><th>W</th><th>L</th><th>Diff</th></tr></thead>
-                <tbody id="standings-body"></tbody>
-            </table>
-        </div>
-    </main>
+            <div id="rotation" class="page">
+                <div class="header-row">
+                    <h2>Rotation Strategy</h2>
+                    <span id="total-minutes">240 / 240 Mins</span>
+                </div>
+                <div id="rotation-list" class="scroll-list"></div>
+            </div>
+
+            <div id="standings" class="page">
+                <h2>Standings</h2>
+                <table id="standings-table">
+                    <thead><tr><th>Rk</th><th>Team</th><th>W</th><th>L</th><th>Diff</th></tr></thead>
+                    <tbody id="standings-body"></tbody>
+                </table>
+            </div>
+        </main>
+    </div>
 
     <script src="script.js"></script>
 </body>
