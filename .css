@@ -1,0 +1,121 @@
+body {
+    background-color: #212121; /* Dark theme background */
+    color: #ffffff;
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.app-container {
+    background-color: #303030;
+    width: 100%;
+    max-width: 400px; /* Mobile app width */
+    height: 100vh;
+    max-height: 800px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    background-color: #d32f2f; /* Basketball Red */
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+header h1 {
+    font-size: 20px;
+    margin: 0;
+    font-weight: 500;
+}
+
+.menu-icon, .dots-icon {
+    font-size: 24px;
+    cursor: pointer;
+}
+
+main {
+    padding: 16px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.card {
+    background-color: #424242;
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #616161;
+    padding-bottom: 8px;
+}
+
+.card h2, .card h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #ffcc80; /* Accent color */
+}
+
+.salary-cap {
+    font-size: 12px;
+    color: #9e9e9e;
+}
+
+.player-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #505050;
+}
+
+.player-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.p-name { font-weight: bold; }
+.p-pos { font-size: 12px; color: #bdbdbd; }
+.p-stat { font-weight: bold; color: #4caf50; }
+
+.message-card p {
+    font-size: 14px;
+    line-height: 1.4;
+    color: #e0e0e0;
+    margin-bottom: 8px;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+.btn {
+    background-color: #d32f2f;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+    font-size: 14px;
+    box-shadow: 0 2px 2px rgba(0,0,0,0.24);
+}
+
+.btn:hover {
+    background-color: #b71c1c;
+}
