@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Basket Manager 2K24 - Commissioner Edition</title>
+    <title>Basket Manager 2K24 - GM Edition</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,8 +12,8 @@
         <div class="header-content">
             <h1>Basket Manager 2K24</h1>
             <div id="status-bar">
-                <span id="season-year">Year: 2024</span> | 
-                <span id="league-phase">Regular Season</span> | 
+                <span id="season-year">2024</span> | 
+                <span id="team-strategy">Strategy: Balanced</span> | 
                 <span id="salary-cap">Cap: $15M Space</span>
             </div>
         </div>
@@ -21,11 +21,9 @@
 
     <nav>
         <button class="nav-btn active" onclick="navigate('roster')">Roster</button>
-        <button class="nav-btn" onclick="navigate('standings')">Standings</button>
-        <button class="nav-btn" onclick="navigate('play')">Play/Sim</button>
         <button class="nav-btn" onclick="navigate('trades')">Trade</button>
-        <button class="nav-btn" onclick="navigate('settings')">Settings</button>
-        <button class="nav-btn" onclick="navigate('playoffs')" id="btn-playoffs" style="display:none;">Playoffs</button>
+        <button class="nav-btn" onclick="navigate('staff')">Staff</button>
+        <button class="nav-btn" onclick="navigate('play')">League</button>
         <button class="nav-btn" onclick="navigate('draft')" id="btn-draft" style="display:none;">Draft</button>
     </nav>
 
@@ -33,24 +31,52 @@
         <div id="roster" class="page active-page">
             <div class="header-row">
                 <h2>My Roster</h2>
-                <div id="roster-count">12/15 Players</div>
+                <div id="roster-count">12/15</div>
             </div>
             <div class="list-header">
-                <span>POS</span> <span>NAME</span> <span>AGE</span> <span>OVR</span> <span>SALARY</span>
+                <span>POS</span> <span>NAME</span> <span>AGE</span> <span>OVR</span> <span>CONTRACT</span>
             </div>
             <div id="roster-list" class="scroll-list"></div>
         </div>
 
-        <div id="standings" class="page">
-            <h2>League Standings</h2>
-            <table id="standings-table">
-                <thead>
-                    <tr>
-                        <th>Rk</th> <th>Team</th> <th>W</th> <th>L</th>
-                    </tr>
-                </thead>
-                <tbody id="standings-body"></tbody>
-            </table>
+        <div id="trades" class="page">
+            <h2>Trade Center</h2>
+            <div class="trade-container">
+                <div class="trade-column">
+                    <h3>My Assets</h3>
+                    <div id="my-trade-list" class="trade-list"></div>
+                </div>
+
+                <div class="trade-middle">
+                    <div class="trade-actions">
+                        <select id="target-team-select" onchange="updateTradeTarget()" class="team-select"></select>
+                        <div id="target-team-info" class="team-info-badge">Rebuilding</div>
+                        <button id="propose-btn" onclick="attemptTrade()">Propose Trade</button>
+                    </div>
+                    <div id="trade-feedback" class="trade-feedback"></div>
+                </div>
+
+                <div class="trade-column">
+                    <h3>Their Assets</h3>
+                    <div id="their-trade-list" class="trade-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="staff" class="page">
+            <h2>Front Office</h2>
+            <div class="staff-section">
+                <h3>Head Coach</h3>
+                <div id="my-coach" class="staff-card"></div>
+                <h4>Available Coaches</h4>
+                <div id="coach-market" class="horizontal-scroll"></div>
+            </div>
+            <div class="staff-section">
+                <h3>Head Scout</h3>
+                <div id="my-scout" class="staff-card"></div>
+                <h4>Available Scouts</h4>
+                <div id="scout-market" class="horizontal-scroll"></div>
+            </div>
         </div>
 
         <div id="play" class="page">
@@ -61,72 +87,17 @@
                     <div id="sim-info">Ready to start season.</div>
                 </div>
                 <button id="sim-btn" class="big-btn" onclick="simulateWeek()">Simulate Week</button>
+                <button class="nav-btn" onclick="navigate('standings')">View Standings</button>
             </div>
-            
-            <h3>League News</h3>
-            <div id="news-feed" class="scroll-list">
-                <div class="news-item">Welcome to the 2024 Season!</div>
-            </div>
+            <div id="news-feed" class="scroll-list"></div>
         </div>
 
-        <div id="trades" class="page">
-            <h2>Trade Center</h2>
-            <div class="trade-area">
-                <div class="trade-column">
-                    <h3>My Assets</h3>
-                    <select id="my-trade-player" class="trade-select"></select>
-                </div>
-                <div class="trade-arrow">⇄</div>
-                <div class="trade-column">
-                    <h3>Target Team</h3>
-                    <select id="target-team-select" onchange="updateTradeTarget()" class="trade-select"></select>
-                    <select id="their-trade-player" class="trade-select"></select>
-                </div>
-            </div>
-            <button id="propose-btn" onclick="attemptTrade()">Propose Trade</button>
-            <p id="trade-result" class="status-msg"></p>
-        </div>
-
-        <div id="settings" class="page">
-            <h2>League Settings</h2>
-            
-            <div class="setting-row">
-                <label>Draft Class Quality</label>
-                <input type="range" min="0" max="100" value="50" onchange="updateSetting('draftQuality', this.value)">
-                <span id="val-draftQuality">50</span>
-            </div>
-
-            <div class="setting-row">
-                <label>CPU Trade Frequency</label>
-                <input type="range" min="0" max="100" value="30" onchange="updateSetting('tradeFreq', this.value)">
-                <span id="val-tradeFreq">30</span>
-            </div>
-
-            <div class="setting-row">
-                <label>CPU Aggressiveness</label>
-                <input type="range" min="0" max="100" value="50" onchange="updateSetting('aggression', this.value)">
-                <span id="val-aggression">50</span>
-            </div>
-
-            <div class="setting-row">
-                <label>Trade Logic (Talent vs Youth/Picks)</label>
-                <input type="range" min="0" max="100" value="50" onchange="updateSetting('youthVal', this.value)">
-                <span id="val-youthVal">50</span>
-                <div class="sub-text">Low = Win Now, High = Rebuild</div>
-            </div>
-
-            <div class="setting-row checkbox-row">
-                <label for="legend-toggle">Enable Historical Legends</label>
-                <input type="checkbox" id="legend-toggle" onchange="updateSetting('legends', this.checked)">
-            </div>
-
-            <button class="big-btn" style="background:#444; margin-top:20px;" onclick="resetLeague()">Reset League</button>
-        </div>
-
-        <div id="playoffs" class="page">
-            <h2>Playoff Bracket</h2>
-            <div id="bracket-display" class="scroll-list"></div>
-            <button id="sim-playoff-btn" class="big-btn" onclick="simPlayoffRound()">Simulate Round</button>
+        <div id="standings" class="page">
+            <h2>Standings</h2>
+            <table id="standings-table">
+                <thead><tr><th>Rk</th><th>Team</th><th>W</th><th>L</th><th>Str</th></tr></thead>
+                <tbody id="standings-body"></tbody>
+            </table>
         </div>
 
         <div id="draft" class="page">
@@ -134,6 +105,7 @@
                 <h2>Rookie Draft</h2>
                 <span id="draft-pick-info">Pick: #15</span>
             </div>
+            <p id="scout-report-msg"></p>
             <div id="draft-list" class="scroll-list"></div>
         </div>
     </main>
