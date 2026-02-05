@@ -81,7 +81,7 @@
             <button class="nav-btn" id="btn-agency" onclick="navigate('agency')">AGENCY</button>
             <button class="nav-btn" id="btn-front-office" onclick="navigate('front-office')">OFFICE</button>
             <button class="nav-btn" id="btn-trades" onclick="navigate('trades')">TRADE</button>
-            <button class="nav-btn" id="btn-standings" onclick="navigate('standings')">STANDINGS</button>
+            <button class="nav-btn" id="btn-settings" onclick="navigate('settings')">SETTINGS</button>
         </nav>
 
         <main>
@@ -90,17 +90,17 @@
                     <div id="season-view" class="dash-card sim-card">
                         <h3>NEXT MATCHUP</h3>
                         <div class="matchup-preview">
-                            <div class="team-logo-placeholder" id="my-team-logo">LAL</div>
+                            <div class="team-logo-placeholder" id="my-team-logo">--</div>
                             <div class="vs">VS</div>
-                            <div class="team-logo-placeholder" id="opp-team-logo">BOS</div>
+                            <div class="team-logo-placeholder" id="opp-team-logo">--</div>
                         </div>
-                        <div class="opp-name" id="next-opponent-name">Boston Celtics</div>
+                        <div class="opp-name" id="next-opponent-name">--</div>
                         <div class="sim-controls">
                             <button class="sim-btn" onclick="simDay()">PLAY DAY</button>
                             <button class="sim-btn secondary" onclick="simWeek()">SIM WEEK</button>
                             <button class="sim-btn secondary" onclick="simMonth()">SIM MONTH</button>
-                            <button class="sim-btn secondary" onclick="simToDeadline()">TO DEADLINE</button>
-                            <button class="sim-btn secondary" onclick="simToPlayoffs()">TO PLAYOFFS</button>
+                            <button class="sim-btn secondary" onclick="simToDeadline()">DEADLINE</button>
+                            <button class="sim-btn secondary" onclick="simToPlayoffs()">PLAYOFFS</button>
                         </div>
                     </div>
 
@@ -148,10 +148,6 @@
                         <h3>AVAILABLE PLAYERS</h3>
                         <div id="fa-list" class="scroll-list"></div>
                     </div>
-                    <div class="agency-col">
-                        <h3>MY ROSTER (CUT)</h3>
-                        <div id="cut-list" class="scroll-list"></div>
-                    </div>
                 </div>
             </div>
 
@@ -169,9 +165,12 @@
                         </div>
                     </div>
                     <div class="dash-card">
-                        <h3>CAP SHEET</h3>
+                        <h3>CAP SHEET & ROSTER MANAGEMENT</h3>
                         <div id="cap-display"></div>
-                        <div id="contract-list" class="scroll-list" style="height:150px;"></div>
+                        <div class="table-header">
+                            <span>NAME</span> <span>CONTRACT</span> <span>ACTION</span>
+                        </div>
+                        <div id="contract-list" class="scroll-list" style="height:250px;"></div>
                     </div>
                 </div>
             </div>
@@ -194,7 +193,19 @@
                     </div>
                 </div>
             </div>
-
+            
+            <div id="settings" class="page">
+                <h2>LEAGUE SETTINGS</h2>
+                <div class="setting-row">
+                    <label>Draft Quality</label>
+                    <input type="range" min="1" max="100" value="50">
+                </div>
+                <div class="setting-row">
+                    <label>Trade Difficulty</label>
+                    <input type="range" min="1" max="100" value="50">
+                </div>
+            </div>
+            
             <div id="standings" class="page">
                 <h2>STANDINGS</h2>
                 <table id="standings-table">
