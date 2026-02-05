@@ -2,6 +2,7 @@
 const POSITIONS = ["PG", "SG", "SF", "PF", "C"];
 const SEASON_DAYS = 82;
 const TRADE_DEADLINE = 50; 
+const LEGENDS = ["M. Jordan", "K. Bryant", "L. Bird", "M. Johnson", "S. O'Neal", "T. Duncan"];
 
 let SETTINGS = { draftQuality: 50, tradeDiff: 50, useLegends: false };
 let TRADE_ASSETS = { my: new Set(), their: new Set() };
@@ -110,15 +111,16 @@ function generateLeagueData() {
         wins: 0, losses: 0,
         roster: generateRoster(data.players),
         staff: { 
-            coach: createStaff('Coach'), 
-            scout: createStaff('Scout') 
+            coach: createStaff('Coach', index), 
+            scout: createStaff('Scout', index) 
         },
         strategy: index < 10 ? 'Contending' : 'Rebuilding'
     }));
 
-    // Free Agents
-    GAME.freeAgents = [];
-    for(let i=0; i<30; i++) GAME.freeAgents.push(createPlayer(null, false));
+    // Free Agents (Real names)
+    GAME.freeAgents = REAL_FREE_AGENTS.map(name => createPlayer(name, true));
+    // Fill with generics if needed
+    while(GAME.freeAgents.length < 30) GAME.freeAgents.push(createPlayer(null, false));
 
     // Available Staff
     GAME.availableStaff.coaches = [createStaff('Coach'), createStaff('Coach'), createStaff('Coach')];
@@ -129,8 +131,7 @@ function generateLeagueData() {
 }
 
 function generateRoster(playerNames) {
-    let roster = playerNames.map((name, i) => createPlayer(name, i < 3)); // First 3 are stars
-    // Minutes
+    let roster = playerNames.map((name, i) => createPlayer(name, i < 3)); 
     roster.forEach((p, i) => {
         p.pos = POSITIONS[i%5];
         p.minutes = i < 5 ? 35 : (i < 10 ? 13 : 0);
@@ -140,7 +141,7 @@ function generateRoster(playerNames) {
 
 function createPlayer(name, isStar) {
     let rating = isStar ? 85 + Math.floor(Math.random()*14) : 70 + Math.floor(Math.random()*10);
-    if(!name && !isStar) rating -= 8; // Generic FA
+    if(!name && !isStar) rating -= 8; 
     
     return {
         id: Math.random().toString(36).substr(2,9),
@@ -155,11 +156,14 @@ function createPlayer(name, isStar) {
     };
 }
 
-function createStaff(type) {
+function createStaff(type, index) {
+    let name = type === 'Coach' && index !== undefined && REAL_COACHES[index] ? REAL_COACHES[index] : `${type} ${Math.floor(Math.random()*500)}`;
+    if(type === 'Scout' && index !== undefined && REAL_SCOUTS[index]) name = REAL_SCOUTS[index];
+    
     return {
         type: type,
-        name: `${type} ${Math.floor(Math.random()*500)}`,
-        rating: Math.floor(Math.random()*5)+1, // 1-5
+        name: name,
+        rating: Math.floor(Math.random()*5)+1, 
         salary: 2000000
     };
 }
@@ -244,6 +248,11 @@ function hireStaff(type, index) {
 }
 
 function signFreeAgent(index) {
+    if(GAME.phase === 'regular' && GAME.day > TRADE_DEADLINE) {
+        alert("Trade/Sign Deadline Passed!");
+        return;
+    }
+    
     let user = GAME.teams[GAME.userTeamId];
     if(user.roster.length >= 15) { alert("Roster Full (15)"); return; }
     
@@ -281,7 +290,7 @@ function renderTradeLists() {
     const mkList = (team, set, el) => {
         document.getElementById(el).innerHTML = team.roster.map(p => `
             <div class="trade-card ${set.has(p.id)?'selected':''}" onclick="toggleTrade('${p.id}', '${el}')">
-                <b>${p.name}</b> (${p.rating}) | ${p.age}yo | $${(p.salary/1e6).toFixed(1)}M
+                <b>${p.name}</b> (${p.rating}) <br> Age: ${p.age} | $${(p.salary/1e6).toFixed(1)}M
             </div>
         `).join('');
     };
@@ -296,6 +305,11 @@ function toggleTrade(pid, side) {
 }
 
 function attemptTrade() {
+    if(GAME.phase === 'regular' && GAME.day > TRADE_DEADLINE) {
+        alert("Trade Deadline Passed!");
+        return;
+    }
+
     const user = GAME.teams[GAME.userTeamId];
     const target = GAME.teams[document.getElementById('target-team-select').value];
     
@@ -352,7 +366,7 @@ function startDraft() {
     GAME.phase = 'draft';
     GAME.draftClass = [];
     for(let i=0; i<40; i++) GAME.draftClass.push(createPlayer(null, true));
-    if(SETTINGS.useLegends) ["M. Jordan","K. Bryant","L. Bird"].forEach(n => GAME.draftClass.unshift(createPlayer(n, true)));
+    if(SETTINGS.useLegends) LEGENDS.forEach(n => GAME.draftClass.unshift(createPlayer(n, true)));
     updateUI();
 }
 
@@ -381,7 +395,6 @@ function navigate(p) {
     document.querySelectorAll('.page').forEach(e => e.classList.remove('active-page'));
     document.getElementById(p).classList.add('active-page');
     
-    // Update Active Button Color
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     let btn = document.getElementById(`btn-${p}`);
     if(btn) btn.classList.add('active');
@@ -401,9 +414,17 @@ function updateUI() {
     document.getElementById('my-team-logo').style.backgroundColor = user.color;
 
     // View Toggles
-    document.getElementById('season-view').style.display = GAME.phase==='regular'?'block':'none';
-    document.getElementById('playoff-view').style.display = GAME.phase==='playoffs'?'block':'none';
-    document.getElementById('draft-view').style.display = GAME.phase==='draft'?'block':'none';
+    ['season-view','playoff-view','draft-view'].forEach(id => document.getElementById(id).style.display='none');
+    if(GAME.phase === 'regular') document.getElementById('season-view').style.display='block';
+    else if(GAME.phase === 'playoffs') {
+        document.getElementById('playoff-view').style.display='block';
+        document.getElementById('bracket-container').innerHTML = GAME.playoffMatchups.map(m => `<div>${m.t1.abbr} vs ${m.t2.abbr}</div>`).join('');
+    } else {
+        document.getElementById('draft-view').style.display='block';
+        document.getElementById('draft-pool-list').innerHTML = GAME.draftClass.map((p,i) => `
+            <div class="player-row"><button onclick="draftPlayer(${i})">DRAFT</button> ${p.name} (${p.rating})</div>
+        `).join('');
+    }
 
     // Roster
     document.getElementById('roster-list').innerHTML = user.roster.map(p => `
@@ -427,40 +448,4 @@ function updateUI() {
         </div>`).join('');
     let totMin = user.roster.reduce((a,b)=>a+b.minutes,0);
     document.getElementById('total-minutes').innerText = `${totMin}/240`;
-    document.getElementById('total-minutes').style.color = totMin > 240 ? 'red' : 'white';
-
-    // Agency
-    document.getElementById('fa-list').innerHTML = GAME.freeAgents.map((p,i) => `
-        <div class="player-row">
-            <b>${p.name}</b> (${p.rating})
-            <button class="sim-btn" style="padding:2px 5px;" onclick="signFreeAgent(${i})">SIGN</button>
-        </div>`).join('');
-    document.getElementById('cut-list').innerHTML = user.roster.map(p => `
-        <div class="player-row">
-            ${p.name}
-            <button class="sim-btn" style="padding:2px 5px; background:red;" onclick="cutPlayer('${p.id}')">CUT</button>
-        </div>`).join('');
-
-    // Office
-    document.getElementById('staff-display').innerHTML = `
-        <div class="staff-card"><b>HC:</b> ${user.staff.coach.name} (${user.staff.coach.rating}*) <button onclick="alert('Fire coach to hire new')">FIRE</button></div>
-        <div class="staff-card"><b>SC:</b> ${user.staff.scout.name} (${user.staff.scout.rating}*) <button onclick="alert('Fire scout to hire new')">FIRE</button></div>
-    `;
-    document.getElementById('coach-market').innerHTML = GAME.availableStaff.coaches.map((s,i) => `
-        <div class="staff-market-card">COACH (${s.rating}*) <br> <button onclick="hireStaff('Coach',${i})">HIRE</button></div>
-    `).join('');
-    document.getElementById('scout-market').innerHTML = GAME.availableStaff.scouts.map((s,i) => `
-        <div class="staff-market-card">SCOUT (${s.rating}*) <br> <button onclick="hireStaff('Scout',${i})">HIRE</button></div>
-    `).join('');
-
-    // Standings & News
-    document.getElementById('news-feed').innerHTML = GAME.news.slice(0,6).map(n => `<div class="news-item">${n}</div>`).join('');
-    let sorted = [...GAME.teams].sort((a,b)=>b.wins-a.wins);
-    document.getElementById('standings-body').innerHTML = sorted.map((t,i) => `
-        <tr class="${t.id===user.id?'highlight':''}"><td>${i+1}</td><td>${t.abbr}</td><td>${t.wins}</td><td>${t.losses}</td><td>${t.wins-t.losses}</td></tr>
-    `).join('');
-
-    if(GAME.phase === 'playoffs') {
-         document.getElementById('bracket-container').innerHTML = GAME.playoffMatchups.map(m => `<div>${m.t1.abbr} vs ${m.t2.abbr}</div>`).join('');
-    }
-}
+    document.getElementById('total-minutes').style.color = tot
