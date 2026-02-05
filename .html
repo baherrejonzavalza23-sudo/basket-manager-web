@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basket Manager 2K24 Web</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <div class="menu-icon">☰</div>
+            <h1>Basket Manager 2K24</h1>
+            <div class="dots-icon">⋮</div>
+        </header>
+
+        <main id="main-content">
+            <div class="card player-card">
+                <div class="card-header">
+                    <h2>Team Roster</h2>
+                    <span class="salary-cap">Cap: $1.5M Left</span>
+                </div>
+                <div class="player-list">
+                    <div class="player-row">
+                        <div class="player-info">
+                            <span class="p-name">J. Smith</span>
+                            <span class="p-pos">PG</span>
+                        </div>
+                        <div class="p-stat">88 OVR</div>
+                    </div>
+                    <div class="player-row">
+                        <div class="player-info">
+                            <span class="p-name">M. Johnson</span>
+                            <span class="p-pos">SG</span>
+                        </div>
+                        <div class="p-stat">91 OVR</div>
+                    </div>
+                    <div class="player-row">
+                        <div class="player-info">
+                            <span class="p-name">D. Williams</span>
+                            <span class="p-pos">SF</span>
+                        </div>
+                        <div class="p-stat">84 OVR</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card message-card">
+                <h3>Notifications</h3>
+                <p><strong>Trade Alert:</strong> You can only trade a maximum of 3 players or draft picks.</p>
+                <p><strong>Contract:</strong> %Player% has accepted your offer.</p>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn" onclick="showSection('roster')">Roster</button>
+                <button class="btn" onclick="showSection('trades')">Trades</button>
+                <button class="btn" onclick="showSection('agency')">Free Agency</button>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function showSection(section) {
+            alert("Navigating to " + section + "... (Simulation)");
+        }
+    </script>
+</body>
+</html>
