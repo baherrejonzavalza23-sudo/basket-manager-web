@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Basketball Manager 2024</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -19,27 +19,24 @@
                     
                     <div class="input-group">
                         <label>SELECT TEAM</label>
-                        <select id="team-select-dropdown" onchange="updateTeamPreview()">
+                        <select id="team-select-dropdown" class="menu-dropdown">
                             </select>
+                    </div>
+
+                    <div class="input-group checkbox-group">
+                        <label for="legends-toggle">INCLUDE LEGENDS IN DRAFT?</label>
+                        <input type="checkbox" id="legends-toggle">
                     </div>
 
                     <div id="team-preview-card" class="team-card">
                         <div class="card-header" id="preview-header">
-                            <h1 id="preview-name">Los Angeles Lakers</h1>
-                            <div class="team-ovr-badge" id="preview-ovr">85</div>
+                            <h1 id="preview-name">Select a Team</h1>
+                            <div class="team-ovr-badge" id="preview-ovr">--</div>
                         </div>
                         <div class="card-body">
-                            <div class="stat-row">
-                                <span>OFFENSE</span>
-                                <div class="progress-bar"><div id="bar-off" style="width: 80%"></div></div>
-                            </div>
-                            <div class="stat-row">
-                                <span>DEFENSE</span>
-                                <div class="progress-bar"><div id="bar-def" style="width: 70%"></div></div>
-                            </div>
                             <div class="star-players">
-                                <small>KEY PLAYERS</small>
-                                <div id="preview-stars">L. James, A. Davis</div>
+                                <small>STAR PLAYERS</small>
+                                <div id="preview-stars">--</div>
                             </div>
                         </div>
                     </div>
@@ -76,7 +73,8 @@
                 <div id="team-record">0-0</div>
             </div>
             <div class="header-center">
-                <span id="date-display">WEEK 1</span>
+                <span id="date-display">WEEK 1</span> | 
+                <span id="phase-display">REGULAR SEASON</span>
             </div>
             <div class="header-right">
                 <button class="icon-btn" onclick="saveGame()">💾 SAVE</button>
@@ -88,13 +86,15 @@
             <button class="nav-btn active" onclick="navigate('dashboard')">DASHBOARD</button>
             <button class="nav-btn" onclick="navigate('roster')">ROSTER</button>
             <button class="nav-btn" onclick="navigate('rotation')">ROTATION</button>
-            <button class="nav-btn" onclick="navigate('standings')">STANDINGS</button>
+            <button class="nav-btn" onclick="navigate('front-office')">FRONT OFFICE</button>
+            <button class="nav-btn" onclick="navigate('trades')">TRADE</button>
+            <button class="nav-btn" onclick="navigate('settings')">SETTINGS</button>
         </nav>
 
         <main>
             <div id="dashboard" class="page active-page">
                 <div class="dashboard-grid">
-                    <div class="dash-card sim-card">
+                    <div id="season-view" class="dash-card sim-card">
                         <h3>NEXT MATCHUP</h3>
                         <div class="matchup-preview">
                             <div class="team-logo-placeholder" id="my-team-logo">LAL</div>
@@ -102,11 +102,23 @@
                             <div class="team-logo-placeholder" id="opp-team-logo">BOS</div>
                         </div>
                         <div class="opp-name" id="next-opponent-name">Boston Celtics</div>
-                        
                         <div class="sim-controls">
-                            <button class="sim-btn" onclick="simDay()">PLAY GAME</button>
+                            <button class="sim-btn" onclick="simDay()">PLAY DAY</button>
                             <button class="sim-btn secondary" onclick="simWeek()">SIM WEEK</button>
+                            <button class="sim-btn secondary" onclick="simToPlayoffs()">TO PLAYOFFS</button>
                         </div>
+                    </div>
+
+                    <div id="playoff-view" class="dash-card sim-card" style="display:none; border: 2px solid gold;">
+                        <h3 style="color:gold">PLAYOFF BRACKET</h3>
+                        <div id="bracket-container" class="scroll-list" style="height: 150px;"></div>
+                        <button class="sim-btn" onclick="simPlayoffRound()" style="width:100%; margin-top:10px; background:gold; color:black;">SIM ROUND</button>
+                    </div>
+
+                    <div id="draft-view" class="dash-card sim-card" style="display:none; border: 2px solid #00e676;">
+                        <h3 style="color:#00e676">NBA DRAFT</h3>
+                        <p id="draft-info">You have the #15 Pick</p>
+                        <div id="draft-pool-list" class="scroll-list" style="height: 200px;"></div>
                     </div>
 
                     <div class="dash-card news-card">
@@ -119,10 +131,10 @@
             <div id="roster" class="page">
                 <div class="page-header">
                     <h2>ACTIVE ROSTER</h2>
-                    <span id="roster-ovr-display">Team OVR: 85</span>
+                    <span id="roster-ovr-display">Team OVR: --</span>
                 </div>
                 <div class="table-header">
-                    <span>POS</span> <span>NAME</span> <span>RATING</span> <span>FATIGUE</span>
+                    <span>POS</span> <span>NAME</span> <span>OVR</span> <span>FATIGUE</span>
                 </div>
                 <div id="roster-list" class="scroll-list"></div>
             </div>
@@ -135,13 +147,54 @@
                 <div id="rotation-list" class="scroll-list"></div>
             </div>
 
-            <div id="standings" class="page">
-                <h2>LEAGUE STANDINGS</h2>
-                <table id="standings-table">
-                    <thead><tr><th>RK</th><th>TEAM</th><th>W</th><th>L</th><th>DIFF</th></tr></thead>
-                    <tbody id="standings-body"></tbody>
-                </table>
+            <div id="front-office" class="page">
+                <h2>FRONT OFFICE</h2>
+                <div class="fo-grid">
+                    <div class="dash-card">
+                        <h3>STAFF</h3>
+                        <div id="staff-display"></div>
+                    </div>
+                    <div class="dash-card">
+                        <h3>CAP & CONTRACTS</h3>
+                        <div id="cap-display">Cap Space: $15M</div>
+                        <div id="contract-list" class="scroll-list" style="height:200px"></div>
+                    </div>
+                </div>
             </div>
+
+            <div id="trades" class="page">
+                <h2>TRADE CENTER</h2>
+                <div class="trade-interface">
+                    <div class="trade-col">
+                        <h3>MY ASSETS</h3>
+                        <div id="my-trade-list" class="trade-list"></div>
+                    </div>
+                    <div class="trade-mid">
+                        <select id="target-team-select" class="menu-dropdown" onchange="updateTradeTarget()"></select>
+                        <div id="target-strategy" style="font-size:0.8rem; margin:5px 0; color:#aaa;">Strategy: Balanced</div>
+                        <button class="sim-btn" onclick="attemptTrade()">PROPOSE</button>
+                        <div id="trade-msg"></div>
+                    </div>
+                    <div class="trade-col">
+                        <h3>THEIR ASSETS</h3>
+                        <div id="their-trade-list" class="trade-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="settings" class="page">
+                <h2>LEAGUE SETTINGS</h2>
+                <div class="setting-row">
+                    <label>Draft Class Quality</label>
+                    <input type="range" min="0" max="100" value="50" onchange="SETTINGS.draftQuality = this.value">
+                </div>
+                <div class="setting-row">
+                    <label>Trade Difficulty</label>
+                    <input type="range" min="0" max="100" value="50" onchange="SETTINGS.tradeDiff = this.value">
+                </div>
+                <button class="sim-btn" onclick="initMainMenu(); document.getElementById('game-container').style.display='none'; document.getElementById('main-menu').style.display='flex';" style="background:red; margin-top:20px;">RETIRE (EXIT)</button>
+            </div>
+
         </main>
     </div>
 
