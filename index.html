@@ -3,28 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Basketball Manager</title>
+    <title>Basketball Manager 2024</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+    <div id="main-menu" class="overlay-full">
+        <div class="menu-content">
+            <h1>Basketball Manager 24</h1>
+            <div class="menu-grid">
+                <div class="menu-col">
+                    <h3>New Career</h3>
+                    <label>Select Your Team:</label>
+                    <select id="team-select-dropdown"></select>
+                    <div id="selected-team-info">Rating: -- | Cap: --</div>
+                    <button class="big-btn" onclick="startNewGame()">Start Career</button>
+                </div>
+                <div class="menu-col">
+                    <h3>Load Career</h3>
+                    <div class="save-slot" onclick="loadSave(1)">Slot 1 <span id="slot-1-info">Empty</span></div>
+                    <div class="save-slot" onclick="loadSave(2)">Slot 2 <span id="slot-2-info">Empty</span></div>
+                    <div class="save-slot" onclick="loadSave(3)">Slot 3 <span id="slot-3-info">Empty</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <header>
         <div class="header-top">
             <h1>Basketball Manager</h1>
-            <div class="save-controls">
-                <select id="save-slot-select">
-                    <option value="1">Slot 1</option>
-                    <option value="2">Slot 2</option>
-                    <option value="3">Slot 3</option>
-                </select>
-                <button class="small-btn" onclick="saveGame()">Save</button>
-                <button class="small-btn" onclick="loadGame()">Load</button>
+            <div class="header-controls">
+                <button class="small-btn" onclick="saveGame()">Save Game</button>
+                <button class="small-btn" onclick="showMainMenu()">Exit</button>
             </div>
         </div>
         <div id="status-bar">
             <span id="date-display">Week 1</span> | 
             <span id="team-record">0-0</span> | 
-            <span id="salary-cap">Cap: $15M Space</span>
+            <span id="fatigue-warn" style="display:none; color:red;">⚠ High Fatigue</span>
         </div>
     </header>
 
@@ -32,8 +48,6 @@
         <button class="nav-btn active" onclick="navigate('dashboard')">League</button>
         <button class="nav-btn" onclick="navigate('roster')">Roster</button>
         <button class="nav-btn" onclick="navigate('rotation')">Rotation</button>
-        <button class="nav-btn" onclick="navigate('front-office')">Front Office</button>
-        <button class="nav-btn" onclick="navigate('trades')">Trade</button>
         <button class="nav-btn" onclick="navigate('standings')">Standings</button>
     </nav>
 
@@ -43,106 +57,41 @@
                 <h2>Simulation Control</h2>
                 <div class="next-game-card">
                     <h3>Next Opponent</h3>
-                    <div id="next-opponent-name">Boston Green</div>
-                    <div id="next-opponent-stat">Rec: 5-2 | Ovr: 82</div>
+                    <h2 id="next-opponent-name">--</h2>
+                    <div id="next-game-date">Day 1</div>
                 </div>
                 
                 <div class="sim-buttons-grid">
-                    <button class="sim-btn" onclick="simDay()">Sim Day</button>
+                    <button class="sim-btn" onclick="simDay()">Play Next Day</button>
                     <button class="sim-btn" onclick="simWeek()">Sim Week</button>
                     <button class="sim-btn" onclick="simMonth()">Sim Month</button>
-                    <button class="sim-btn special" onclick="simToDeadline()">Sim to Deadline</button>
-                    <button class="sim-btn special" onclick="simToPlayoffs()">Sim to Playoffs</button>
                 </div>
             </div>
-
             <h3>League News</h3>
             <div id="news-feed" class="scroll-list"></div>
         </div>
 
         <div id="roster" class="page">
-            <div class="header-row">
-                <h2>Active Roster</h2>
-                <span id="roster-count">13/15</span>
-            </div>
+            <h2>Active Roster</h2>
             <div id="roster-list" class="scroll-list"></div>
         </div>
 
         <div id="rotation" class="page">
-            <h2>Rotation & Minutes</h2>
-            <p class="hint-text">Click a player to move them between Starters and Bench.</p>
-            
-            <div class="rotation-group">
-                <h3>Starters (High Minutes)</h3>
-                <div id="starters-list" class="rotation-list"></div>
+            <div class="header-row">
+                <h2>Rotation Strategy</h2>
+                <span id="total-minutes">240 / 240 Mins</span>
             </div>
-
-            <div class="rotation-group">
-                <h3>Bench (Low Minutes)</h3>
-                <div id="bench-list" class="rotation-list"></div>
-            </div>
-            
-            <div class="rotation-group">
-                <h3>Reserves (No Minutes)</h3>
-                <div id="reserves-list" class="rotation-list"></div>
-            </div>
-        </div>
-
-        <div id="front-office" class="page">
-            <h2>Front Office</h2>
-            
-            <div class="fo-section">
-                <h3>Payroll Breakdown</h3>
-                <div id="payroll-list" class="compact-list"></div>
-                <div class="cap-total" id="fo-cap-total">Total: $120M / $140M</div>
-            </div>
-
-            <div class="fo-section">
-                <h3>Staff</h3>
-                <div id="fo-staff-list" class="staff-grid"></div>
-            </div>
-
-            <div class="fo-section">
-                <h3>Draft Assets</h3>
-                <div id="fo-picks-list" class="compact-list"></div>
-            </div>
-        </div>
-
-        <div id="trades" class="page">
-            <h2>Trade Center</h2>
-            <div class="trade-container">
-                <div class="trade-col">
-                    <h3>My Assets</h3>
-                    <div id="my-trade-list" class="trade-list"></div>
-                </div>
-                <div class="trade-mid">
-                    <select id="target-team-select" onchange="updateTradeTarget()" class="team-select"></select>
-                    <button id="propose-btn" onclick="attemptTrade()">Propose</button>
-                    <div id="trade-msg"></div>
-                </div>
-                <div class="trade-col">
-                    <h3>Their Assets</h3>
-                    <div id="their-trade-list" class="trade-list"></div>
-                </div>
-            </div>
+            <p class="hint-text">Allocate minutes. Players with high minutes gain fatigue faster.</p>
+            <div id="rotation-list" class="scroll-list"></div>
         </div>
 
         <div id="standings" class="page">
             <h2>Standings</h2>
             <table id="standings-table">
-                <thead><tr><th>Rk</th><th>Team</th><th>W</th><th>L</th><th>Diff</th></tr></thead>
+                <thead><tr><th>Rank</th><th>Team</th><th>W</th><th>L</th><th>Diff</th></tr></thead>
                 <tbody id="standings-body"></tbody>
             </table>
         </div>
-        
-        <div id="event-overlay" class="overlay" style="display:none;">
-            <div class="overlay-content">
-                <h2 id="event-title">Event</h2>
-                <div id="event-body"></div>
-                <button class="big-btn" onclick="closeEvent()">Continue</button>
-            </div>
-        </div>
-
     </main>
 
     <script src="script.js"></script>
