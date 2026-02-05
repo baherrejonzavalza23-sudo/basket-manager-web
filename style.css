@@ -1,40 +1,56 @@
-/* Previous styles remain... */
-body { background-color: #121212; color: #eee; font-family: sans-serif; margin: 0; padding-bottom: 20px; }
-header { background: #b71c1c; padding: 15px; text-align: center; box-shadow: 0 2px 10px black; }
+body { background-color: #121212; color: #eee; font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 20px; }
+header { background: #b71c1c; padding: 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
 h1 { margin: 0; font-size: 1.4rem; }
-#status-bar { font-size: 0.8rem; margin-top: 5px; opacity: 0.8; }
+#status-bar { font-size: 0.8rem; margin-top: 5px; opacity: 0.8; display:flex; justify-content:center; gap:10px; }
 
 nav { display: flex; background: #333; position: sticky; top: 0; z-index: 10; overflow-x: auto; }
-.nav-btn { flex-shrink: 0; background: none; border: none; color: #aaa; padding: 15px 10px; font-weight: bold; cursor: pointer; white-space: nowrap; font-size: 0.9rem; }
+.nav-btn { flex: 1; min-width: 80px; background: none; border: none; color: #aaa; padding: 15px 5px; font-weight: bold; cursor: pointer; }
 .nav-btn.active { color: white; border-bottom: 4px solid #b71c1c; background: #222; }
 
-main { max-width: 600px; margin: 0 auto; padding: 10px; }
+main { max-width: 800px; margin: 0 auto; padding: 10px; }
 .page { display: none; }
 .active-page { display: block; }
 
-/* Lists */
-.scroll-list { max-height: 60vh; overflow-y: auto; }
+/* Lists & Rows */
 .header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; padding-bottom: 10px; margin-bottom: 10px; }
-.player-row, .pick-row { display: flex; justify-content: space-between; padding: 12px; background: #1e1e1e; margin-bottom: 2px; align-items: center; }
-.pick-row { background: #263238; border-left: 3px solid #00bcd4; } 
+.player-row { display: flex; justify-content: space-between; padding: 12px; background: #1e1e1e; margin-bottom: 4px; align-items: center; border-radius: 4px; }
+.pos-badge { background: #444; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; width: 25px; text-align: center; margin-right: 8px;}
+.player-name { flex: 2; font-weight: 500; }
 
-.pos-badge { background: #444; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; width: 30px; text-align: center; margin-right: 8px;}
-.player-name { flex: 2; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.player-rating { font-weight: bold; color: #ddd; width: 30px; text-align: right; }
-.player-salary { width: 60px; text-align: right; font-size: 0.8rem; color: #aaa; }
+/* TRADE UI - THE BIG CHANGE */
+.trade-container { display: flex; gap: 10px; height: 70vh; }
+.trade-column { flex: 1; background: #1e1e1e; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; }
+.trade-middle { width: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; }
+.trade-list { overflow-y: auto; flex: 1; }
 
-/* Settings Specific */
-.setting-row { background: #1e1e1e; padding: 15px; margin-bottom: 10px; border-radius: 6px; }
-.setting-row label { display: block; font-weight: bold; margin-bottom: 5px; color: #ddd; }
-.setting-row input[type="range"] { width: 100%; }
-.checkbox-row { display: flex; align-items: center; justify-content: space-between; }
-.sub-text { font-size: 0.75rem; color: #888; margin-top: 5px; font-style: italic; }
+.trade-card { background: #333; margin-bottom: 8px; padding: 8px; border-radius: 4px; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
+.trade-card:hover { background: #444; }
+.trade-card.selected { border-color: #00e676; background: #2e3b32; }
+.trade-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.trade-detail { font-size: 0.75rem; color: #aaa; }
+.name { font-weight: bold; font-size: 0.9rem; }
+.ovr { color: #00e676; font-weight: bold; }
 
-/* News & Trade */
-.news-item { padding: 8px; border-bottom: 1px solid #333; font-size: 0.9rem; color: #ccc; }
-.trade-news { color: #29b6f6; border-left: 3px solid #29b6f6; padding-left: 5px; }
+.team-select { width: 100%; padding: 8px; background: #333; color: white; border: 1px solid #555; border-radius: 4px; }
+.team-info-badge { font-size: 0.7rem; padding: 4px; border-radius: 4px; text-align: center; width: 100%; margin-bottom: 10px; }
+.team-info-badge.rebuilding { background: #1565c0; color: white; }
+.team-info-badge.contending { background: #c62828; color: white; }
+.team-info-badge.balanced { background: #555; color: #ccc; }
 
-/* Buttons & Inputs */
-.big-btn { background: #00e676; color: black; border: none; padding: 15px; font-size: 1.1rem; border-radius: 50px; cursor: pointer; font-weight: bold; width: 100%; display: block; }
-.trade-select { width: 100%; padding: 10px; margin-bottom: 5px; background: #333; color: white; border: 1px solid #555; }
-.sign-btn { background: #2196f3; color: white; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer; }
+#propose-btn { background: #00e676; border: none; padding: 10px; width: 100%; border-radius: 4px; font-weight: bold; cursor: pointer; color: #000; }
+.trade-feedback { font-size: 0.8rem; text-align: center; font-weight: bold; min-height: 40px; }
+
+/* STAFF UI */
+.staff-section { margin-bottom: 20px; }
+.horizontal-scroll { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; }
+.staff-card { background: #252525; padding: 15px; border-radius: 8px; min-width: 150px; border: 1px solid #444; }
+.staff-card-inner { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 5px; }
+.staff-grade { font-size: 2rem; font-weight: bold; color: #ff9800; }
+.staff-name { font-weight: bold; }
+.staff-spec { font-size: 0.8rem; color: #888; }
+.sign-btn { background: #2196f3; border: none; color: white; padding: 5px 15px; border-radius: 4px; cursor: pointer; margin-top: 5px; }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th { text-align: left; background: #333; padding: 8px; }
+td { padding: 8px; border-bottom: 1px solid #333; }
