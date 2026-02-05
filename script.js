@@ -1,4 +1,4 @@
-/* --- DATA --- */
+/* --- CONFIGURATION --- */
 const TEAMS_DATA = [
     { name: "Atlanta Hawks", abbr: "ATL", color: "#E03A3E", stars: ["T. Young", "D. Murray"] },
     { name: "Boston Celtics", abbr: "BOS", color: "#007A33", stars: ["J. Tatum", "J. Brown"] },
@@ -33,22 +33,29 @@ const TEAMS_DATA = [
 ];
 
 const POSITIONS = ["PG", "SG", "SF", "PF", "C"];
+const LEGENDS = ["M. Jordan", "K. Bryant", "L. Bird", "M. Johnson", "S. O'Neal", "T. Duncan"];
 const SEASON_DAYS = 82;
 
-/* --- STATE --- */
+let SETTINGS = { draftQuality: 50, tradeDiff: 50, useLegends: false };
+let TRADE_ASSETS = { my: new Set(), their: new Set() };
+
 let GAME = {
-    userTeamId: null,
+    userTeamId: 0,
     day: 1,
     year: 2024,
     phase: 'regular',
     teams: [],
     schedule: [],
-    news: []
+    news: [],
+    playoffMatchups: [],
+    draftClass: []
 };
 
-/* --- MENU LOGIC --- */
+/* --- INITIALIZATION --- */
 window.onload = function() {
     initMainMenu();
+    // Add event listener to dropdown manually to ensure it works
+    document.getElementById('team-select-dropdown').addEventListener('change', updateTeamPreview);
 };
 
 function initMainMenu() {
@@ -58,56 +65,41 @@ function initMainMenu() {
         select.innerHTML += `<option value="${i}">${t.name}</option>`;
     });
 
-    // Load Slots
+    // Update Slots
     for(let i=1; i<=3; i++) {
         let save = localStorage.getItem('bm_save_' + i);
         let el = document.getElementById(`slot-${i}-info`);
         let card = document.getElementById(`slot-${i}-card`);
-        
         if(save) {
             let data = JSON.parse(save);
             let tName = data.teams[data.userTeamId].name;
-            el.innerHTML = `<span style="color:#00e676">${tName}</span><br>Year ${data.year} - Day ${data.day}`;
+            el.innerHTML = `<span style="color:#00e676">${tName}</span><br>${data.year}`;
             card.classList.add('filled');
-        } else {
-            el.innerText = "NO SAVE DATA";
-            card.classList.remove('filled');
         }
     }
-    
     updateTeamPreview();
 }
 
 function updateTeamPreview() {
     const idx = document.getElementById('team-select-dropdown').value;
     const data = TEAMS_DATA[idx];
-    
     document.getElementById('preview-name').innerText = data.name;
     document.getElementById('preview-stars').innerText = data.stars.join(", ");
-    
-    // Simulate Ratings for Preview (Since actual roster isn't gen'd yet)
-    // We calculate based on position in array (assuming top teams are top) or random variance for demo
-    // Ideally we'd gen roster temp, but for UI speed we approximate:
-    let baseOvr = 90 - (idx % 10); // Pseudo rating
-    if (["LAL", "BOS", "DEN", "MIL"].includes(data.abbr)) baseOvr = 95;
-    
-    document.getElementById('preview-ovr').innerText = baseOvr;
-    document.getElementById('preview-ovr').style.backgroundColor = data.color;
+    document.getElementById('preview-ovr').innerText = "8" + (Math.floor(Math.random()*9)); // Random preview ovr
     document.getElementById('preview-header').style.borderLeft = `5px solid ${data.color}`;
-    
-    document.getElementById('bar-off').style.width = `${baseOvr}%`;
-    document.getElementById('bar-off').style.backgroundColor = data.color;
-    document.getElementById('bar-def').style.width = `${baseOvr - 5}%`;
 }
 
 function startNewGame() {
     const select = document.getElementById('team-select-dropdown');
+    SETTINGS.useLegends = document.getElementById('legends-toggle').checked;
+    
     GAME.userTeamId = parseInt(select.value);
     GAME.day = 1;
     GAME.year = 2024;
+    GAME.phase = 'regular';
     GAME.teams = generateTeams();
     GAME.schedule = generateSchedule();
-    GAME.news = [`Welcome GM! The ${GAME.year} season begins.`];
+    GAME.news = ["Welcome to the League!"];
     
     enterGame();
 }
@@ -117,9 +109,7 @@ function loadSave(slot) {
     if(save) {
         GAME = JSON.parse(save);
         enterGame();
-    } else {
-        alert("This slot is empty. Start a new career.");
-    }
+    } else alert("Empty Slot");
 }
 
 function enterGame() {
@@ -136,10 +126,10 @@ function exitToMenu() {
 
 function saveGame() {
     localStorage.setItem('bm_save_1', JSON.stringify(GAME));
-    alert("Progress saved to Slot 1");
+    alert("Saved to Slot 1");
 }
 
-/* --- GAME LOGIC --- */
+/* --- DATA GENERATION --- */
 function generateTeams() {
     return TEAMS_DATA.map((data, index) => ({
         id: index,
@@ -147,35 +137,35 @@ function generateTeams() {
         abbr: data.abbr,
         color: data.color,
         wins: 0, losses: 0,
-        roster: generateRoster(data.stars)
+        roster: generateRoster(data.stars),
+        staff: { coach: Math.floor(Math.random()*5), scout: Math.floor(Math.random()*5) },
+        strategy: Math.random() > 0.5 ? 'Contending' : 'Rebuilding'
     }));
 }
 
 function generateRoster(stars) {
     let roster = [];
-    // Add Stars
     stars.forEach(name => roster.push(createPlayer(name, true)));
-    // Add Role Players
     while(roster.length < 13) roster.push(createPlayer(null, false));
     
-    // Assign Pos & Minutes
     roster.forEach((p, i) => {
         p.pos = p.pos || POSITIONS[i%5];
-        p.minutes = i < 5 ? 34 : (i < 9 ? 16 : 0);
-        if(i >= 9) p.minutes = 0; // Reserves
+        p.minutes = i < 5 ? 35 : (i < 10 ? 13 : 0);
     });
     return roster.sort((a,b) => b.rating - a.rating);
 }
 
 function createPlayer(name, isStar) {
-    let rating = isStar ? 88 + Math.floor(Math.random()*11) : 72 + Math.floor(Math.random()*8);
+    let rating = isStar ? 86 + Math.floor(Math.random()*13) : 72 + Math.floor(Math.random()*8);
     if(!isStar && Math.random() > 0.8) rating -= 10;
-    
     return {
         id: Math.random().toString(36).substr(2,9),
         name: name || `Player ${Math.floor(Math.random()*1000)}`,
         rating: rating,
-        stamina: 85 + Math.floor(Math.random()*15),
+        age: isStar ? 24 + Math.floor(Math.random()*10) : 20 + Math.floor(Math.random()*15),
+        contract: Math.floor(Math.random()*4)+1,
+        salary: Math.floor(rating * 300000),
+        stamina: 80 + Math.floor(Math.random()*20),
         fatigue: 0,
         minutes: 0
     };
@@ -194,131 +184,224 @@ function generateSchedule() {
 
 /* --- SIMULATION --- */
 function simDay() {
-    if(GAME.day > SEASON_DAYS) { alert("Season Over! Check Standings."); return; }
-    
-    let todaysGames = GAME.schedule[GAME.day-1];
-    todaysGames.forEach(g => playGame(GAME.teams[g.t1], GAME.teams[g.t2]));
-    
-    // Recovery
+    if(GAME.phase !== 'regular') return;
+    if(GAME.day > SEASON_DAYS) { startPlayoffs(); return; }
+
+    GAME.schedule[GAME.day-1].forEach(g => playGame(GAME.teams[g.t1], GAME.teams[g.t2]));
     GAME.teams.forEach(t => t.roster.forEach(p => p.fatigue = Math.max(0, p.fatigue - 15)));
     
     GAME.day++;
+    if(GAME.day > SEASON_DAYS) startPlayoffs();
     updateUI();
 }
 
 function simWeek() {
-    for(let i=0; i<7; i++) {
-        if(GAME.day > SEASON_DAYS) break;
-        simDay();
-    }
+    for(let i=0; i<7; i++) { if(GAME.phase === 'regular') simDay(); }
+}
+
+function simToPlayoffs() {
+    while(GAME.phase === 'regular') simDay();
 }
 
 function playGame(t1, t2) {
     let s1 = getTeamStrength(t1);
-    let s2 = getTeamStrength(t2) + 5; // Home court
-    
+    let s2 = getTeamStrength(t2) + 3; // Home Court
     if(s1 + Math.random()*20 > s2 + Math.random()*20) { t1.wins++; t2.losses++; }
     else { t2.wins++; t1.losses++; }
     
     // Fatigue
-    [t1,t2].forEach(t => t.roster.forEach(p => p.fatigue = Math.min(100, p.fatigue + (p.minutes*0.5))));
+    [t1, t2].forEach(t => t.roster.forEach(p => p.fatigue += (p.minutes * 0.4)));
     
-    // Log
     if(t1.id === GAME.userTeamId || t2.id === GAME.userTeamId) {
-        let userWon = (t1.id === GAME.userTeamId && s1>s2) || (t2.id === GAME.userTeamId && s2>s1);
+        let win = (t1.id===GAME.userTeamId && s1>s2) || (t2.id===GAME.userTeamId && s2>s1);
         let opp = t1.id === GAME.userTeamId ? t2.name : t1.name;
-        GAME.news.unshift(`Day ${GAME.day}: ${userWon ? "WIN" : "LOSS"} vs ${opp}`);
+        GAME.news.unshift(`Day ${GAME.day}: ${win ? "WIN" : "LOSS"} vs ${opp}`);
     }
 }
 
 function getTeamStrength(t) {
     let str = 0;
     t.roster.forEach(p => {
-        let impact = p.rating - (p.fatigue > 50 ? (p.fatigue-50)*0.5 : 0);
-        str += impact * (p.minutes/48);
+        let effective = p.rating - (p.fatigue > 50 ? (p.fatigue-50)*0.5 : 0);
+        str += effective * (p.minutes/48);
     });
-    return str * 2;
+    return str * 2 + t.staff.coach;
 }
 
-/* --- UI --- */
-function navigate(page) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
-    document.getElementById(page).classList.add('active-page');
+/* --- PLAYOFFS & DRAFT --- */
+function startPlayoffs() {
+    GAME.phase = 'playoffs';
+    let sorted = [...GAME.teams].sort((a,b)=>b.wins-a.wins).slice(0, 16);
+    GAME.playoffMatchups = [];
+    for(let i=0; i<8; i++) GAME.playoffMatchups.push({t1:sorted[i], t2:sorted[15-i]});
+    GAME.news.unshift("--- PLAYOFFS BEGIN ---");
+    updateUI();
+}
+
+function simPlayoffRound() {
+    let winners = [];
+    GAME.playoffMatchups.forEach(m => {
+        let w = getTeamStrength(m.t1) > getTeamStrength(m.t2) ? m.t1 : m.t2;
+        winners.push(w);
+        GAME.news.unshift(`${w.name} advances!`);
+    });
+    
+    if(winners.length === 1) {
+        alert(`${winners[0].name} Wins the Championship!`);
+        startDraft();
+    } else {
+        GAME.playoffMatchups = [];
+        for(let i=0; i<winners.length; i+=2) GAME.playoffMatchups.push({t1:winners[i], t2:winners[i+1]});
+        updateUI();
+    }
+}
+
+function startDraft() {
+    GAME.phase = 'draft';
+    GAME.draftClass = [];
+    for(let i=0; i<30; i++) GAME.draftClass.push(createPlayer(null, true));
+    
+    // Legends
+    if(SETTINGS.useLegends) {
+        LEGENDS.forEach(n => GAME.draftClass.unshift(createPlayer(n, true)));
+    }
+    updateUI();
+}
+
+function draftPlayer(idx) {
+    let p = GAME.draftClass[idx];
+    GAME.teams[GAME.userTeamId].roster.push(p);
+    alert(`Drafted ${p.name}!`);
+    startNewSeason();
+}
+
+function startNewSeason() {
+    GAME.year++;
+    GAME.day = 1;
+    GAME.phase = 'regular';
+    GAME.schedule = generateSchedule();
+    GAME.teams.forEach(t => {
+        t.wins = 0; t.losses = 0;
+        t.roster.forEach(p => {
+            p.age++;
+            p.contract--;
+            if(p.contract <= 0) p.rating = 0; // Removed/Expired (Simplified)
+        });
+        t.roster = t.roster.filter(p => p.rating > 0); // Remove expired
+    });
+    GAME.news = [`${GAME.year} Season Started`];
+    updateUI();
+}
+
+/* --- TRADES --- */
+function updateTradeTarget() {
+    TRADE_ASSETS = { my: new Set(), their: new Set() };
+    const tid = document.getElementById('target-team-select').value;
+    const t = GAME.teams[tid];
+    document.getElementById('target-strategy').innerText = `Strategy: ${t.strategy}`;
+    renderTradeLists();
+}
+
+function renderTradeLists() {
+    const user = GAME.teams[GAME.userTeamId];
+    const target = GAME.teams[document.getElementById('target-team-select').value];
+    
+    const mkList = (team, set, el) => {
+        document.getElementById(el).innerHTML = team.roster.map(p => `
+            <div class="trade-card ${set.has(p.id)?'selected':''}" onclick="toggleTrade('${p.id}', '${el}')">
+                <b>${p.name}</b> (${p.rating}) $${(p.salary/1e6).toFixed(1)}M
+            </div>
+        `).join('');
+    };
+    mkList(user, TRADE_ASSETS.my, 'my-trade-list');
+    mkList(target, TRADE_ASSETS.their, 'their-trade-list');
+}
+
+function toggleTrade(pid, side) {
+    const set = side === 'my-trade-list' ? TRADE_ASSETS.my : TRADE_ASSETS.their;
+    if(set.has(pid)) set.delete(pid); else set.add(pid);
+    renderTradeLists();
+}
+
+function attemptTrade() {
+    const user = GAME.teams[GAME.userTeamId];
+    const target = GAME.teams[document.getElementById('target-team-select').value];
+    
+    let myOffer = user.roster.filter(p => TRADE_ASSETS.my.has(p.id));
+    let theirOffer = target.roster.filter(p => TRADE_ASSETS.their.has(p.id));
+    
+    let myVal = myOffer.reduce((a,b) => a + b.rating + (30-b.age), 0);
+    let theirVal = theirOffer.reduce((a,b) => a + b.rating + (30-b.age), 0);
+    
+    // Strategy Logic
+    if(target.strategy === 'Rebuilding') myVal += myOffer.filter(p=>p.age<24).length * 10;
+    
+    if(myVal >= theirVal) {
+        // Execute
+        user.roster = user.roster.filter(p => !TRADE_ASSETS.my.has(p.id)).concat(theirOffer);
+        target.roster = target.roster.filter(p => !TRADE_ASSETS.their.has(p.id)).concat(myOffer);
+        alert("Trade Accepted!");
+        TRADE_ASSETS.my.clear(); TRADE_ASSETS.their.clear();
+        renderTradeLists();
+    } else {
+        document.getElementById('trade-msg').innerText = "Trade Rejected: Value too low.";
+    }
+}
+
+/* --- UI HELPERS --- */
+function navigate(p) {
+    document.querySelectorAll('.page').forEach(e => e.classList.remove('active-page'));
+    document.getElementById(p).classList.add('active-page');
+    if(p === 'trades') {
+        const sel = document.getElementById('target-team-select');
+        sel.innerHTML = "";
+        GAME.teams.forEach(t => { if(t.id!==GAME.userTeamId) sel.innerHTML+=`<option value="${t.id}">${t.name}</option>`; });
+        updateTradeTarget();
+    }
     updateUI();
 }
 
 function updateUI() {
     const user = GAME.teams[GAME.userTeamId];
-    
-    // Header
-    document.getElementById('team-record').innerText = `${user.wins}-${user.losses}`;
+    document.getElementById('phase-display').innerText = GAME.phase.toUpperCase();
     document.getElementById('date-display').innerText = `DAY ${GAME.day}`;
-    document.getElementById('roster-ovr-display').innerText = `TEAM OVR: ${Math.floor(getTeamStrength(user)/2.5)}`; // approx
-
-    // Logos/Colors
-    document.getElementById('my-team-logo').innerText = user.abbr;
-    document.getElementById('my-team-logo').style.backgroundColor = user.color;
     
-    // Next Opponent
-    if(GAME.day <= SEASON_DAYS) {
-        let next = GAME.schedule[GAME.day-1].find(g => g.t1===user.id || g.t2===user.id);
-        let opp = GAME.teams[next.t1===user.id ? next.t2 : next.t1];
-        document.getElementById('opp-team-logo').innerText = opp.abbr;
-        document.getElementById('opp-team-logo').style.backgroundColor = opp.color;
-        document.getElementById('next-opponent-name').innerText = opp.name;
+    // View Switching
+    ['season-view','playoff-view','draft-view'].forEach(id => document.getElementById(id).style.display='none');
+    if(GAME.phase === 'regular') document.getElementById('season-view').style.display='block';
+    else if(GAME.phase === 'playoffs') {
+        document.getElementById('playoff-view').style.display='block';
+        document.getElementById('bracket-container').innerHTML = GAME.playoffMatchups.map(m => `<div>${m.t1.abbr} vs ${m.t2.abbr}</div>`).join('');
     } else {
-        document.getElementById('next-opponent-name').innerText = "SEASON OVER";
+        document.getElementById('draft-view').style.display='block';
+        document.getElementById('draft-pool-list').innerHTML = GAME.draftClass.map((p,i) => `
+            <div class="player-row"><button onclick="draftPlayer(${i})">DRAFT</button> ${p.name} (${p.rating})</div>
+        `).join('');
     }
-
-    // Roster
+    
+    // Front Office
+    document.getElementById('staff-display').innerHTML = `Coach Lvl: ${user.staff.coach} | Scout Lvl: ${user.staff.scout}`;
+    document.getElementById('contract-list').innerHTML = user.roster.map(p => `<div class="player-row">${p.name}: $${(p.salary/1e6).toFixed(1)}M (${p.contract}y)</div>`).join('');
+    
+    // Roster & Rotation
     document.getElementById('roster-list').innerHTML = user.roster.map(p => `
         <div class="player-row">
             <span class="pos-badge">${p.pos}</span>
             <span class="player-name">${p.name}</span>
             <span class="stat-box">${p.rating}</span>
-            <span class="stat-box" style="color:${p.fatigue>50?'red':'#888'}">${Math.floor(p.fatigue)}%</span>
-        </div>
-    `).join('');
-
-    // Rotation
-    let totalMin = 0;
-    document.getElementById('rotation-list').innerHTML = user.roster.map(p => {
-        totalMin += parseInt(p.minutes);
-        return `
+            <span class="stat-box">${Math.floor(p.fatigue)}%</span>
+        </div>`).join('');
+        
+    document.getElementById('rotation-list').innerHTML = user.roster.map(p => `
         <div class="rotation-row">
-            <div class="rot-info">
-                <strong>${p.name}</strong>
-                <small>Stamina: ${p.stamina}</small>
-            </div>
-            <div class="rot-slider-container">
-                <input type="range" min="0" max="48" value="${p.minutes}" oninput="updateMinutes('${p.id}', this.value)">
-                <span class="min-badge">${p.minutes}m</span>
-            </div>
-        </div>`;
-    }).join('');
-    
-    let minDisp = document.getElementById('total-minutes');
-    minDisp.innerText = `${totalMin} / 240`;
-    minDisp.style.color = totalMin > 240 ? '#ff5252' : '#00e676';
-
-    // Standings
+            <b>${p.name}</b> <input type="range" max="48" value="${p.minutes}" oninput="this.nextElementSibling.innerText=this.value+'m'; GAME.teams[GAME.userTeamId].roster.find(x=>x.id=='${p.id}').minutes=parseInt(this.value); document.getElementById('total-minutes').innerText=GAME.teams[GAME.userTeamId].roster.reduce((a,b)=>a+b.minutes,0)+'/240'">
+            <span>${p.minutes}m</span>
+        </div>`).join('');
+        
+    // News & Standings
+    document.getElementById('news-feed').innerHTML = GAME.news.slice(0,6).map(n => `<div class="news-item">${n}</div>`).join('');
     let sorted = [...GAME.teams].sort((a,b)=>b.wins-a.wins);
     document.getElementById('standings-body').innerHTML = sorted.map((t,i) => `
-        <tr class="${t.id===user.id?'highlight':''}">
-            <td>${i+1}</td>
-            <td>${t.abbr}</td>
-            <td>${t.wins}</td>
-            <td>${t.losses}</td>
-            <td>${t.wins-t.losses}</td>
-        </tr>
+        <tr class="${t.id===user.id?'highlight':''}"><td>${i+1}</td><td>${t.abbr}</td><td>${t.wins}</td><td>${t.losses}</td><td>${t.wins-t.losses}</td></tr>
     `).join('');
-    
-    // News
-    document.getElementById('news-feed').innerHTML = GAME.news.slice(0,6).map(n => `<div class="news-item">${n}</div>`).join('');
-}
-
-function updateMinutes(pid, val) {
-    let p = GAME.teams[GAME.userTeamId].roster.find(x => x.id === pid);
-    if(p) p.minutes = parseInt(val);
-    updateUI();
 }
