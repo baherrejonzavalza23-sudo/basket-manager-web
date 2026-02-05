@@ -1,157 +1,295 @@
-// --- Game Data (Simulating the CSV files) ---
-const GAME_STATE = {
-    salaryCap: 15000000, // $15M Budget
-    currentCap: 12500000,
-    myTeam: [
-        { id: 1, name: "J. Smith", pos: "PG", rating: 88, salary: 4000000 },
-        { id: 2, name: "M. Johnson", pos: "SG", rating: 91, salary: 5500000 },
-        { id: 3, name: "D. Williams", pos: "SF", rating: 84, salary: 3000000 },
-        { id: 4, name: "K. Thompson", pos: "PF", rating: 79, salary: 2000000 },
-        { id: 5, name: "B. Lopez", pos: "C", rating: 82, salary: 2500000 }
-    ],
-    opponentTeam: [
-        { id: 101, name: "L. James", pos: "SF", rating: 96, salary: 8000000 },
-        { id: 102, name: "S. Curry", pos: "PG", rating: 95, salary: 7500000 },
-        { id: 103, name: "J. Doe", pos: "SG", rating: 75, salary: 1000000 },
-        { id: 104, name: "A. Noname", pos: "C", rating: 72, salary: 900000 }
-    ],
-    freeAgents: [
-        { id: 201, name: "C. Paul", pos: "PG", rating: 85, salary: 3500000 },
-        { id: 202, name: "D. Howard", pos: "C", rating: 80, salary: 1500000 },
-        { id: 203, name: "Y. Ming", pos: "C", rating: 90, salary: 4500000 },
-        { id: 204, name: "R. Allen", pos: "SG", rating: 88, salary: 2200000 }
-    ]
+/* --- CONFIGURATION --- */
+const TEAM_NAMES = [
+    "Atlanta Birds", "Boston Green", "Brooklyn Nets", "Charlotte Hornets", "Chicago Bulls",
+    "Cleveland Cavs", "Dallas Mavs", "Denver Nuggets", "Detroit Pistons", "Golden State",
+    "Houston Rockets", "Indiana Pacers", "LA Clippers", "LA Lakers", "Memphis Bears",
+    "Miami Heat", "Milwaukee Bucks", "Minnesota Wolves", "NO Pelicans", "NY Knicks",
+    "OKC Thunder", "Orlando Magic", "Philly 76ers", "Phoenix Suns", "Portland Blazers",
+    "Sacramento Kings", "San Antonio Spurs", "Toronto Raptors", "Utah Jazz", "Wash Wizards"
+];
+const POSITIONS = ["PG", "SG", "SF", "PF", "C"];
+const USER_TEAM_ID = 13; // LA Lakers
+const SALARY_CAP = 140000000;
+const REGULAR_SEASON_WEEKS = 20; // Shortened season for gameplay speed
+
+/* --- STATE --- */
+let LEAGUE = {
+    year: 2024,
+    phase: 'regular', // regular, playoffs, offseason, draft
+    week: 1,
+    teams: [],
+    playoffMatches: [], // Stores current round matchups
+    draftClass: [],
+    draftOrder: []
 };
 
-// --- Initialization ---
+/* --- INITIALIZATION --- */
 window.onload = function() {
+    initLeague();
     updateUI();
 };
 
-function updateUI() {
-    updateCapDisplay();
-    renderRoster();
-    renderTradeSelects();
-    renderFreeAgents();
+function initLeague() {
+    LEAGUE.teams = TEAM_NAMES.map((name, index) => ({
+        id: index,
+        name: name,
+        wins: 0,
+        losses: 0,
+        roster: generateRoster(index)
+    }));
 }
 
-// --- Navigation Logic ---
+function generateRoster(teamId) {
+    let roster = [];
+    for (let pos of POSITIONS) {
+        for (let i = 0; i < 3; i++) {
+            roster.push(createRandomPlayer(pos));
+        }
+    }
+    return roster.sort((a, b) => b.rating - a.rating);
+}
+
+function createRandomPlayer(pos, isRookie = false) {
+    const names = ["James", "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Curry", "Doncic", "Jokic"];
+    const first = ["Le", "De", "Ja", "Ma", "Ka", "Ty", "Ky", "Lu", "Ste", "Chris"];
+    
+    // Rookies are 19-22, Veterans 20-38
+    let age = isRookie ? Math.floor(Math.random() * 4) + 19 : Math.floor(Math.random() * 18) + 20;
+    
+    // Rating calculation
+    let base = isRookie ? 65 : 70;
+    let rating = Math.floor(Math.random() * 30) + base; 
+    if (rating > 99) rating = 99;
+
+    // Salary based on rating
+    let salary = Math.floor(Math.pow(rating - 55, 3) * 100) + 900000;
+    if(salary < 900000) salary = 900000;
+
+    return {
+        name: first[Math.floor(Math.random()*first.length)] + ". " + names[Math.floor(Math.random()*names.length)],
+        pos: pos,
+        age: age,
+        rating: rating,
+        salary: salary
+    };
+}
+
+/* --- NAVIGATION & UI --- */
 function navigate(pageId) {
-    // Hide all pages
-    const pages = document.querySelectorAll('.page');
-    pages.forEach(p => p.style.display = 'none');
-    
-    // Show selected page
+    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
     document.getElementById(pageId).style.display = 'block';
-
-    // Update button styles
-    const buttons = document.querySelectorAll('.nav-btn');
-    buttons.forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active'); // Highlight clicked button
     
-    // Clear messages
-    document.getElementById('trade-result').innerText = "";
+    if (pageId === 'roster') renderRoster();
+    if (pageId === 'standings') renderStandings();
+    
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    // Handle hidden buttons becoming active
+    const activeBtn = document.querySelector(`button[onclick="navigate('${pageId}')"]`);
+    if(activeBtn) activeBtn.classList.add('active');
 }
 
-// --- Roster Logic ---
+function updateUI() {
+    document.getElementById('season-year').innerText = "Year: " + LEAGUE.year;
+    document.getElementById('league-phase').innerText = LEAGUE.phase.toUpperCase();
+    
+    // Update Play/Sim Info
+    if (LEAGUE.phase === 'regular') {
+        document.getElementById('next-opponent').innerText = "Week " + LEAGUE.week;
+        document.getElementById('sim-info').innerText = "Regular Season Action";
+        document.getElementById('sim-btn').innerText = "Simulate Week";
+        document.getElementById('sim-btn').style.display = "block";
+    } else if (LEAGUE.phase === 'playoffs') {
+        document.getElementById('sim-btn').style.display = "none";
+        document.getElementById('btn-playoffs').style.display = "inline-block";
+    } else if (LEAGUE.phase === 'draft') {
+        document.getElementById('sim-btn').style.display = "none";
+        document.getElementById('btn-draft').style.display = "inline-block";
+    }
+}
+
 function renderRoster() {
     const list = document.getElementById('roster-list');
-    list.innerHTML = ""; // Clear current list
-    
-    GAME_STATE.myTeam.forEach(player => {
-        const row = document.createElement('div');
-        row.className = 'player-row';
-        row.innerHTML = `
-            <span class="pos-badge">${player.pos}</span>
-            <span class="player-name">${player.name}</span>
-            <span class="player-rating">${player.rating}</span>
-            <span class="player-salary">$${(player.salary / 1000000).toFixed(1)}M</span>
-        `;
-        list.appendChild(row);
-    });
-}
-
-function updateCapDisplay() {
-    // Calculate total salary
-    let totalSalary = GAME_STATE.myTeam.reduce((sum, p) => sum + p.salary, 0);
-    let space = GAME_STATE.salaryCap - totalSalary;
-    document.getElementById('salary-cap').innerText = "$" + (space / 1000000).toFixed(2) + "M";
-    GAME_STATE.currentSpace = space;
-}
-
-// --- Trade Logic ---
-function renderTradeSelects() {
-    const mySelect = document.getElementById('my-trade-player');
-    const theirSelect = document.getElementById('their-trade-player');
-    
-    mySelect.innerHTML = "";
-    theirSelect.innerHTML = "";
-
-    GAME_STATE.myTeam.forEach((p, index) => {
-        mySelect.innerHTML += `<option value="${index}">${p.name} (${p.rating})</option>`;
-    });
-
-    GAME_STATE.opponentTeam.forEach((p, index) => {
-        theirSelect.innerHTML += `<option value="${index}">${p.name} (${p.rating})</option>`;
-    });
-}
-
-function attemptTrade() {
-    const myIdx = document.getElementById('my-trade-player').value;
-    const theirIdx = document.getElementById('their-trade-player').value;
-    
-    const myPlayer = GAME_STATE.myTeam[myIdx];
-    const theirPlayer = GAME_STATE.opponentTeam[theirIdx];
-    const resultMsg = document.getElementById('trade-result');
-
-    // Simple Trade Logic: Opponent accepts if your player is within 5 rating points
-    // OR if their player is low rated (< 80)
-    const ratingDiff = theirPlayer.rating - myPlayer.rating;
-    
-    if (ratingDiff > 5) {
-        resultMsg.innerText = "Trade Rejected: They want a better player.";
-        resultMsg.style.color = "red";
-    } else {
-        // Execute Trade
-        GAME_STATE.myTeam[myIdx] = theirPlayer;
-        GAME_STATE.opponentTeam[theirIdx] = myPlayer;
-        
-        resultMsg.innerText = "Trade Accepted!";
-        resultMsg.style.color = "#4caf50";
-        updateUI(); // Refresh lists
-    }
-}
-
-// --- Free Agency Logic ---
-function renderFreeAgents() {
-    const list = document.getElementById('fa-list');
     list.innerHTML = "";
+    
+    const myTeam = LEAGUE.teams[USER_TEAM_ID];
+    let totalSal = myTeam.roster.reduce((a,b)=>a+b.salary,0);
+    document.getElementById('salary-cap').innerText = "Cap: $" + ((SALARY_CAP - totalSal)/1e6).toFixed(1) + "M";
+    document.getElementById('roster-count').innerText = `${myTeam.roster.length}/15 Players`;
 
-    GAME_STATE.freeAgents.forEach((player, index) => {
-        const row = document.createElement('div');
-        row.className = 'player-row';
-        row.innerHTML = `
-            <span class="player-name">${player.name}</span>
-            <span class="player-rating">${player.rating}</span>
-            <span class="player-salary">$${(player.salary / 1000000).toFixed(1)}M</span>
-            <button class="sign-btn" onclick="signPlayer(${index})">Sign</button>
-        `;
-        list.appendChild(row);
+    myTeam.roster.forEach(p => {
+        list.innerHTML += `
+            <div class="player-row">
+                <span class="pos-badge">${p.pos}</span>
+                <span class="player-name">${p.name}</span>
+                <span class="player-age">${p.age}yo</span>
+                <span class="player-rating ${p.rating > 89 ? 'elite' : ''}">${p.rating}</span>
+                <span class="player-salary">$${(p.salary/1e6).toFixed(1)}M</span>
+            </div>`;
     });
 }
 
-function signPlayer(index) {
-    const player = GAME_STATE.freeAgents[index];
+function renderStandings() {
+    const tbody = document.getElementById('standings-body');
+    tbody.innerHTML = "";
+    const sorted = [...LEAGUE.teams].sort((a,b) => b.wins - a.wins);
     
-    if (GAME_STATE.currentSpace >= player.salary) {
-        // Sign player
-        GAME_STATE.myTeam.push(player);
-        // Remove from FA list
-        GAME_STATE.freeAgents.splice(index, 1);
-        
-        alert("Signed " + player.name + "!");
-        updateUI();
-    } else {
-        alert("Not enough Cap Space!");
+    sorted.forEach((t, index) => {
+        let isUser = t.id === USER_TEAM_ID ? "user-row" : "";
+        tbody.innerHTML += `<tr class="${isUser}"><td>${index + 1}</td><td>${t.name}</td><td>${t.wins}</td><td>${t.losses}</td></tr>`;
+    });
+}
+
+/* --- GAME LOGIC --- */
+function getTeamRating(team) {
+    let top8 = team.roster.sort((a,b) => b.rating - a.rating).slice(0, 8);
+    return top8.reduce((sum, p) => sum + p.rating, 0) / 8;
+}
+
+function simulateWeek() {
+    if (LEAGUE.week > REGULAR_SEASON_WEEKS) {
+        startPlayoffs();
+        return;
+    }
+
+    let indices = LEAGUE.teams.map(t => t.id).sort(() => Math.random() - 0.5);
+    for (let i = 0; i < indices.length; i += 2) {
+        simulateGame(LEAGUE.teams[indices[i]], LEAGUE.teams[indices[i+1]]);
+    }
+    
+    logNews(`Week ${LEAGUE.week} completed.`);
+    LEAGUE.week++;
+    updateUI();
+    
+    if (LEAGUE.week > REGULAR_SEASON_WEEKS) {
+        document.getElementById('sim-btn').innerText = "Start Playoffs";
+        document.getElementById('sim-btn').onclick = startPlayoffs;
     }
 }
+
+function simulateGame(teamA, teamB) {
+    let scoreA = Math.floor(getTeamRating(teamA) + (Math.random() * 20));
+    let scoreB = Math.floor(getTeamRating(teamB) + (Math.random() * 20));
+    if(scoreA === scoreB) scoreA++;
+
+    if(scoreA > scoreB) { teamA.wins++; teamB.losses++; }
+    else { teamB.wins++; teamA.losses++; }
+}
+
+function logNews(msg, type="neutral") {
+    const feed = document.getElementById('news-feed');
+    feed.innerHTML = `<div class="news-item ${type}">${msg}</div>` + feed.innerHTML;
+}
+
+/* --- PLAYOFFS --- */
+function startPlayoffs() {
+    LEAGUE.phase = 'playoffs';
+    navigate('playoffs');
+    
+    // Sort top 16 teams
+    let sorted = [...LEAGUE.teams].sort((a,b) => b.wins - a.wins).slice(0, 16);
+    
+    // Create Round 1 Matchups (1 vs 16, 2 vs 15...)
+    LEAGUE.playoffMatches = [];
+    for(let i=0; i<8; i++) {
+        LEAGUE.playoffMatches.push({
+            team1: sorted[i],
+            team2: sorted[15-i]
+        });
+    }
+    renderBracket();
+    updateUI();
+}
+
+function renderBracket() {
+    const container = document.getElementById('bracket-display');
+    container.innerHTML = "<h3>Current Round Matchups</h3>";
+    
+    if(LEAGUE.playoffMatches.length === 1 && LEAGUE.playoffMatches[0].winner) {
+         container.innerHTML = `<div class="champ-banner">🏆 CHAMPION: ${LEAGUE.playoffMatches[0].winner.name} 🏆</div>`;
+         document.getElementById('sim-playoff-btn').innerText = "Start Offseason";
+         document.getElementById('sim-playoff-btn').onclick = startOffseason;
+         return;
+    }
+
+    LEAGUE.playoffMatches.forEach(m => {
+        container.innerHTML += `
+            <div class="matchup-box">
+                <div class="${m.team1.id===USER_TEAM_ID?'user-text':''}">${m.team1.name} (${m.team1.wins})</div>
+                <div class="vs">VS</div>
+                <div class="${m.team2.id===USER_TEAM_ID?'user-text':''}">${m.team2.name} (${m.team2.wins})</div>
+            </div>`;
+    });
+}
+
+function simPlayoffRound() {
+    let nextRound = [];
+    let winners = [];
+    
+    LEAGUE.playoffMatches.forEach(m => {
+        let score1 = getTeamRating(m.team1) + Math.random()*15;
+        let score2 = getTeamRating(m.team2) + Math.random()*15;
+        let winner = score1 > score2 ? m.team1 : m.team2;
+        
+        logNews(`${winner.name} eliminates ${score1>score2 ? m.team2.name : m.team1.name}`, "playoff");
+        winners.push(winner);
+    });
+
+    if (winners.length === 1) {
+        LEAGUE.playoffMatches = [{winner: winners[0]}]; // Mark champion
+        renderBracket();
+    } else {
+        // Pair up next round
+        for(let i=0; i<winners.length; i+=2) {
+            nextRound.push({ team1: winners[i], team2: winners[i+1] });
+        }
+        LEAGUE.playoffMatches = nextRound;
+        renderBracket();
+    }
+}
+
+/* --- OFFSEASON & DRAFT --- */
+function startOffseason() {
+    LEAGUE.phase = 'draft';
+    navigate('draft');
+    
+    // Generate Draft Class
+    LEAGUE.draftClass = [];
+    for(let i=0; i<60; i++) {
+        LEAGUE.draftClass.push(createRandomPlayer(POSITIONS[Math.floor(Math.random()*5)], true));
+    }
+    
+    // Draft Order: Reverse Standings
+    LEAGUE.draftOrder = [...LEAGUE.teams].sort((a,b) => a.wins - b.wins);
+    
+    renderDraft();
+    updateUI();
+}
+
+function renderDraft() {
+    const list = document.getElementById('draft-list');
+    list.innerHTML = "";
+    
+    // Find User Pick Index
+    let userPickIndex = LEAGUE.draftOrder.findIndex(t => t.id === USER_TEAM_ID);
+    document.getElementById('draft-pick-info').innerText = `You pick at #${userPickIndex + 1}`;
+
+    LEAGUE.draftClass.forEach((p, idx) => {
+        list.innerHTML += `
+            <div class="player-row">
+                <span class="pos-badge">${p.pos}</span>
+                <span class="player-name">${p.name}</span>
+                <span class="player-rating" style="color:#aaa;">Pot: ${p.rating + Math.floor(Math.random()*10)}</span>
+                <span class="player-rating">${p.rating}</span>
+                <button class="sign-btn" onclick="draftPlayer(${idx})">Draft</button>
+            </div>`;
+    });
+}
+
+function draftPlayer(playerIdx) {
+    let userPickIndex = LEAGUE.draftOrder.findIndex(t => t.id === USER_TEAM_ID);
+    
+    // Sim picks before user
+    for(let i=0; i<userPickIndex; i++) {
+        let team = LEAGUE.draftOrder[i];
+        let pick = LEAGUE.draftClass.shift(); // Remove top player
+        team.roster.push(pick
