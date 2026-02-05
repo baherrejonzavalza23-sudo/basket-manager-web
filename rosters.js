@@ -120,3 +120,24 @@ const REAL_ROSTERS = [
         players: ["Kyle Kuzma", "Jordan Poole", "Tyus Jones", "Deni Avdija", "Corey Kispert", "Bilal Coulibaly", "Marvin Bagley III", "Richaun Holmes", "Landry Shamet", "Anthony Gill", "Johnny Davis", "Patrick Baldwin Jr.", "Eugene Omoruyi", "Jared Butler", "Tristan Vukcevic"]
     }
 ];
+
+const REAL_FREE_AGENTS = [
+    "John Wall", "Blake Griffin", "DeMarcus Cousins", "Dwight Howard", "Carmelo Anthony", 
+    "Kemba Walker", "Victor Oladipo", "T.J. Warren", "Austin Rivers", "Ish Smith",
+    "Goran Dragic", "Will Barton", "Danny Green", "George Hill", "Hamidou Diallo",
+    "Nerlens Noel", "Dewayne Dedmon", "Bismack Biyombo", "Justise Winslow", "Romeo Langford"
+];
+
+const REAL_COACHES = [
+    "Joe Mazzulla", "Tom Thibodeau", "Michael Malone", "Mark Daigneault", "Chris Finch",
+    "Tyronn Lue", "Rick Carlisle", "Erik Spoelstra", "Nick Nurse", "Steve Kerr",
+    "Gregg Popovich", "Mike Brown", "Willie Green", "Quin Snyder", "Taylor Jenkins",
+    "Jamahl Mosley", "Ime Udoka", "Will Hardy", "Chauncey Billups", "Steve Clifford",
+    "Darko Rajakovic", "Wes Unseld Jr.", "Billy Donovan", "Monty Williams", "J.B. Bickerstaff",
+    "Jason Kidd", "Darvin Ham", "Frank Vogel", "Jacque Vaughn", "Brian Keefe"
+];
+
+const REAL_SCOUTS = [
+    "Jerry West", "Danny Ainge", "Pat Riley", "Masai Ujiri", "Daryl Morey",
+    "Sam Presti", "Bob Myers", "Tim Connelly", "Lawrence Frank", "Brad Stevens"
+];
