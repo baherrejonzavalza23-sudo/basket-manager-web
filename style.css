@@ -1,8 +1,8 @@
-/* Previous base CSS... */
+/* Base */
 body { background: #121212; color: #fff; font-family: 'Roboto', sans-serif; margin: 0; }
 h1, h2, h3 { font-family: 'Teko', sans-serif; margin: 0; letter-spacing: 1px; }
 
-/* Menu */
+/* Menus */
 .main-menu-container { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #0f1015; z-index: 9999; display: flex; justify-content: center; align-items: center; }
 .menu-glass-panel { background: #1e1e1e; padding: 40px; border-radius: 20px; width: 90%; max-width: 900px; }
 .menu-grid { display: flex; gap: 30px; }
@@ -17,7 +17,7 @@ h1, h2, h3 { font-family: 'Teko', sans-serif; margin: 0; letter-spacing: 1px; }
 header { background: #1a1a1a; padding: 10px; display: flex; justify-content: space-between; align-items: center; }
 nav { display: flex; background: #222; overflow-x: auto; }
 .nav-btn { flex: 1; padding: 15px; background: none; border: none; color: #777; font-family: 'Teko'; font-size: 1.2rem; cursor: pointer; min-width: 70px; }
-.nav-btn.active { color: white; border-bottom: 3px solid #ff5722; background: #2a2a2a; }
+.nav-btn.active { color: white; border-bottom: 3px solid #ff5722; background: #2f2f2f; /* Updated active color */ }
 
 main { padding: 10px; max-width: 800px; margin: 0 auto; }
 .page { display: none; }
@@ -35,7 +35,7 @@ main { padding: 10px; max-width: 800px; margin: 0 auto; }
 /* Lists */
 .scroll-list { max-height: 400px; overflow-y: auto; }
 .player-row { display: flex; justify-content: space-between; align-items: center; background: #2a2a2a; padding: 8px; margin-bottom: 2px; }
-.pos-badge { background: #444; padding: 2px 6px; font-size: 0.8rem; border-radius: 3px; margin-right: 10px; }
+.pos-badge { background: #444; padding: 2px 6px; font-size: 0.8rem; margin-right: 10px; border-radius: 4px; }
 .stat-box { font-family: 'Teko'; width: 30px; text-align: center; }
 
 /* Rotation Visuals */
@@ -58,4 +58,4 @@ main { padding: 10px; max-width: 800px; margin: 0 auto; }
 .trade-card.selected { background: #37474f; border-left: 3px solid #00e676; }
 
 /* Responsive */
-@media (max-width: 600px) { .menu-grid, .dashboard-grid, .agency-split { flex-direction: column; } }
+@media (max-width: 600px) { .menu-grid, .dashboard-grid, .agency-split, .fo-grid { flex-direction: column; } }
