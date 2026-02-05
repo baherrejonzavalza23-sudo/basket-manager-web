@@ -12,40 +12,32 @@
     <div id="main-menu" class="main-menu-container">
         <div class="menu-glass-panel">
             <h1 class="game-title">BASKETBALL MANAGER <span class="accent">24</span></h1>
-            
             <div class="menu-grid">
                 <div class="menu-column new-game-col">
-                    <h2>START NEW DYNASTY</h2>
-                    
+                    <h2>NEW CAREER</h2>
                     <div class="input-group">
                         <label>SELECT TEAM</label>
-                        <select id="team-select-dropdown" class="menu-dropdown">
-                            </select>
+                        <select id="team-select-dropdown" class="menu-dropdown"></select>
                     </div>
-
                     <div class="input-group checkbox-group">
-                        <label for="legends-toggle">INCLUDE LEGENDS IN DRAFT?</label>
+                        <label for="legends-toggle">INCLUDE LEGENDS?</label>
                         <input type="checkbox" id="legends-toggle">
                     </div>
-
                     <div id="team-preview-card" class="team-card">
                         <div class="card-header" id="preview-header">
-                            <h1 id="preview-name">Select a Team</h1>
+                            <h1 id="preview-name">Select Team</h1>
                             <div class="team-ovr-badge" id="preview-ovr">--</div>
                         </div>
                         <div class="card-body">
-                            <div class="star-players">
-                                <small>STAR PLAYERS</small>
-                                <div id="preview-stars">--</div>
-                            </div>
+                            <small>ROSTER PREVIEW</small>
+                            <div id="preview-stars">--</div>
                         </div>
                     </div>
-
-                    <button class="action-btn start-btn" onclick="startNewGame()">ENTER LEAGUE</button>
+                    <button class="action-btn start-btn" onclick="startNewGame()">START SEASON</button>
                 </div>
 
                 <div class="menu-column load-game-col">
-                    <h2>LOAD CAREER</h2>
+                    <h2>LOAD SAVE</h2>
                     <div class="save-slot-container">
                         <div class="save-slot" onclick="loadSave(1)" id="slot-1-card">
                             <div class="slot-header">SLOT 1</div>
@@ -77,18 +69,19 @@
                 <span id="phase-display">REGULAR SEASON</span>
             </div>
             <div class="header-right">
-                <button class="icon-btn" onclick="saveGame()">💾 SAVE</button>
-                <button class="icon-btn" onclick="exitToMenu()">❌ EXIT</button>
+                <button class="icon-btn" onclick="saveGame()">💾</button>
+                <button class="icon-btn" onclick="exitToMenu()">❌</button>
             </div>
         </header>
 
         <nav>
-            <button class="nav-btn active" onclick="navigate('dashboard')">DASHBOARD</button>
-            <button class="nav-btn" onclick="navigate('roster')">ROSTER</button>
-            <button class="nav-btn" onclick="navigate('rotation')">ROTATION</button>
-            <button class="nav-btn" onclick="navigate('front-office')">FRONT OFFICE</button>
-            <button class="nav-btn" onclick="navigate('trades')">TRADE</button>
-            <button class="nav-btn" onclick="navigate('settings')">SETTINGS</button>
+            <button class="nav-btn active" id="btn-dashboard" onclick="navigate('dashboard')">DASH</button>
+            <button class="nav-btn" id="btn-roster" onclick="navigate('roster')">ROSTER</button>
+            <button class="nav-btn" id="btn-rotation" onclick="navigate('rotation')">ROTATION</button>
+            <button class="nav-btn" id="btn-agency" onclick="navigate('agency')">AGENCY</button>
+            <button class="nav-btn" id="btn-front-office" onclick="navigate('front-office')">OFFICE</button>
+            <button class="nav-btn" id="btn-trades" onclick="navigate('trades')">TRADE</button>
+            <button class="nav-btn" id="btn-standings" onclick="navigate('standings')">STANDINGS</button>
         </nav>
 
         <main>
@@ -105,20 +98,21 @@
                         <div class="sim-controls">
                             <button class="sim-btn" onclick="simDay()">PLAY DAY</button>
                             <button class="sim-btn secondary" onclick="simWeek()">SIM WEEK</button>
+                            <button class="sim-btn secondary" onclick="simMonth()">SIM MONTH</button>
+                            <button class="sim-btn secondary" onclick="simToDeadline()">TO DEADLINE</button>
                             <button class="sim-btn secondary" onclick="simToPlayoffs()">TO PLAYOFFS</button>
                         </div>
                     </div>
 
-                    <div id="playoff-view" class="dash-card sim-card" style="display:none; border: 2px solid gold;">
-                        <h3 style="color:gold">PLAYOFF BRACKET</h3>
-                        <div id="bracket-container" class="scroll-list" style="height: 150px;"></div>
-                        <button class="sim-btn" onclick="simPlayoffRound()" style="width:100%; margin-top:10px; background:gold; color:black;">SIM ROUND</button>
+                    <div id="playoff-view" class="dash-card sim-card" style="display:none; border:2px solid gold;">
+                        <h3 style="color:gold">PLAYOFFS</h3>
+                        <div id="bracket-container" class="scroll-list" style="height:150px;"></div>
+                        <button class="sim-btn" onclick="simPlayoffRound()" style="background:gold; color:black; margin-top:10px; width:100%;">SIM ROUND</button>
                     </div>
 
-                    <div id="draft-view" class="dash-card sim-card" style="display:none; border: 2px solid #00e676;">
+                    <div id="draft-view" class="dash-card sim-card" style="display:none; border:2px solid #00e676;">
                         <h3 style="color:#00e676">NBA DRAFT</h3>
-                        <p id="draft-info">You have the #15 Pick</p>
-                        <div id="draft-pool-list" class="scroll-list" style="height: 200px;"></div>
+                        <div id="draft-pool-list" class="scroll-list" style="height:200px;"></div>
                     </div>
 
                     <div class="dash-card news-card">
@@ -130,21 +124,35 @@
 
             <div id="roster" class="page">
                 <div class="page-header">
-                    <h2>ACTIVE ROSTER</h2>
-                    <span id="roster-ovr-display">Team OVR: --</span>
+                    <h2>ROSTER</h2>
+                    <span id="roster-ovr-display"></span>
                 </div>
                 <div class="table-header">
-                    <span>POS</span> <span>NAME</span> <span>OVR</span> <span>FATIGUE</span>
+                    <span>POS</span> <span>NAME</span> <span>AGE</span> <span>OVR</span> <span>FAT</span>
                 </div>
                 <div id="roster-list" class="scroll-list"></div>
             </div>
 
             <div id="rotation" class="page">
                 <div class="page-header">
-                    <h2>ROTATION MINUTES</h2>
-                    <span id="total-minutes">240 / 240</span>
+                    <h2>ROTATION</h2>
+                    <span id="total-minutes">240/240</span>
                 </div>
                 <div id="rotation-list" class="scroll-list"></div>
+            </div>
+
+            <div id="agency" class="page">
+                <h2>FREE AGENCY</h2>
+                <div class="agency-split">
+                    <div class="agency-col">
+                        <h3>AVAILABLE PLAYERS</h3>
+                        <div id="fa-list" class="scroll-list"></div>
+                    </div>
+                    <div class="agency-col">
+                        <h3>MY ROSTER (CUT)</h3>
+                        <div id="cut-list" class="scroll-list"></div>
+                    </div>
+                </div>
             </div>
 
             <div id="front-office" class="page">
@@ -153,11 +161,17 @@
                     <div class="dash-card">
                         <h3>STAFF</h3>
                         <div id="staff-display"></div>
+                        <div class="staff-market">
+                            <h4>Hire Coach</h4>
+                            <div id="coach-market" class="horizontal-scroll"></div>
+                            <h4>Hire Scout</h4>
+                            <div id="scout-market" class="horizontal-scroll"></div>
+                        </div>
                     </div>
                     <div class="dash-card">
-                        <h3>CAP & CONTRACTS</h3>
-                        <div id="cap-display">Cap Space: $15M</div>
-                        <div id="contract-list" class="scroll-list" style="height:200px"></div>
+                        <h3>CAP SHEET</h3>
+                        <div id="cap-display"></div>
+                        <div id="contract-list" class="scroll-list" style="height:150px;"></div>
                     </div>
                 </div>
             </div>
@@ -171,7 +185,6 @@
                     </div>
                     <div class="trade-mid">
                         <select id="target-team-select" class="menu-dropdown" onchange="updateTradeTarget()"></select>
-                        <div id="target-strategy" style="font-size:0.8rem; margin:5px 0; color:#aaa;">Strategy: Balanced</div>
                         <button class="sim-btn" onclick="attemptTrade()">PROPOSE</button>
                         <div id="trade-msg"></div>
                     </div>
@@ -182,22 +195,18 @@
                 </div>
             </div>
 
-            <div id="settings" class="page">
-                <h2>LEAGUE SETTINGS</h2>
-                <div class="setting-row">
-                    <label>Draft Class Quality</label>
-                    <input type="range" min="0" max="100" value="50" onchange="SETTINGS.draftQuality = this.value">
-                </div>
-                <div class="setting-row">
-                    <label>Trade Difficulty</label>
-                    <input type="range" min="0" max="100" value="50" onchange="SETTINGS.tradeDiff = this.value">
-                </div>
-                <button class="sim-btn" onclick="initMainMenu(); document.getElementById('game-container').style.display='none'; document.getElementById('main-menu').style.display='flex';" style="background:red; margin-top:20px;">RETIRE (EXIT)</button>
+            <div id="standings" class="page">
+                <h2>STANDINGS</h2>
+                <table id="standings-table">
+                    <thead><tr><th>RK</th><th>TEAM</th><th>W</th><th>L</th><th>DIFF</th></tr></thead>
+                    <tbody id="standings-body"></tbody>
+                </table>
             </div>
 
         </main>
     </div>
 
+    <script src="rosters.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
