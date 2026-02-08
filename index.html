@@ -17,7 +17,7 @@
                     <h2>NEW CAREER</h2>
                     <div class="input-group">
                         <label>SELECT TEAM</label>
-                        <select id="team-select-dropdown" class="menu-dropdown"></select>
+                        <select id="team-select-dropdown" class="menu-dropdown" onchange="updateTeamPreview()"></select>
                     </div>
                     <div class="input-group checkbox-group">
                         <label for="legends-toggle">INCLUDE LEGENDS?</label>
@@ -90,11 +90,11 @@
                     <div id="season-view" class="dash-card sim-card">
                         <h3>NEXT MATCHUP</h3>
                         <div class="matchup-preview">
-                            <div class="team-logo-placeholder" id="my-team-logo">--</div>
+                            <div class="team-logo-placeholder" id="my-team-logo">LAL</div>
                             <div class="vs">VS</div>
-                            <div class="team-logo-placeholder" id="opp-team-logo">--</div>
+                            <div class="team-logo-placeholder" id="opp-team-logo">BOS</div>
                         </div>
-                        <div class="opp-name" id="next-opponent-name">--</div>
+                        <div class="opp-name" id="next-opponent-name">Boston Celtics</div>
                         <div class="sim-controls">
                             <button class="sim-btn" onclick="simDay()">PLAY DAY</button>
                             <button class="sim-btn secondary" onclick="simWeek()">SIM WEEK</button>
